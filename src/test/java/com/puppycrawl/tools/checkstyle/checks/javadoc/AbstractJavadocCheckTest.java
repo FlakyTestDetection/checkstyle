@@ -43,7 +43,6 @@ import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
 import com.puppycrawl.tools.checkstyle.TreeWalker;
 import com.puppycrawl.tools.checkstyle.api.DetailNode;
 import com.puppycrawl.tools.checkstyle.api.JavadocTokenTypes;
-import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 import com.puppycrawl.tools.checkstyle.internal.TestUtils;
 import com.puppycrawl.tools.checkstyle.utils.BlockCommentPosition;
 import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
@@ -55,7 +54,8 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
         return super.getPath("checks" + File.separator
-                + "javadoc" + File.separator + filename);
+                + "javadoc" + File.separator
+                + "abstractjavadoc" + File.separator + filename);
     }
 
     @Test
@@ -66,14 +66,14 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
                 + "alternative at input '<ul><li>a' {@link EntityEntry} (by way of {@link #;'",
                 "HTML_TAG"),
         };
-        verify(checkConfig, getPath("InputTestNumberFormatException.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocNumberFormatException.java"), expected);
     }
 
     @Test
     public void testCustomTag() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(TempCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputCustomTag.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocCustomTag.java"), expected);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
             "4: " + getCheckMessage(MSG_JAVADOC_MISSED_HTML_CLOSE, 4, "unclosedTag"),
             "8: " + getCheckMessage(MSG_JAVADOC_WRONG_SINGLETON_TAG, 35, "img"),
         };
-        verify(checkConfig, getPath("InputParsingErrors.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocParsingErrors.java"), expected);
     }
 
     @Test
@@ -97,7 +97,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         checker.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
         checker.configure(checkerConfig);
 
-        verify(checker, getPath("InputCorrectJavaDocParagraph.java"));
+        verify(checker, getPath("InputAbstractJavadocCorrectParagraph.java"));
     }
 
     @Test
@@ -106,23 +106,24 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         final String[] expected = {
             "3: " + getCheckMessage(MSG_KEY_UNRECOGNIZED_ANTLR_ERROR, 0, null),
         };
-        verify(checkConfig, getPath("InputTestInvalidAtSeeReference.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocInvalidAtSeeReference.java"), expected);
     }
 
     @Test
     public void testCheckReuseAfterParseErrorWithFollowingAntlrErrorInTwoFiles() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(TempCheck.class);
         final Map<String, List<String>> expectedMessages = new LinkedHashMap<>(2);
-        expectedMessages.put(getPath("InputParsingErrors.java"), asList(
+        expectedMessages.put(getPath("InputAbstractJavadocParsingErrors.java"), asList(
             "4: " + getCheckMessage(MSG_JAVADOC_MISSED_HTML_CLOSE, 4, "unclosedTag"),
             "8: " + getCheckMessage(MSG_JAVADOC_WRONG_SINGLETON_TAG, 35, "img")
         ));
-        expectedMessages.put(getPath("InputTestInvalidAtSeeReference.java"), singletonList(
-            "3: " + getCheckMessage(MSG_KEY_UNRECOGNIZED_ANTLR_ERROR, 0, null)
+        expectedMessages.put(getPath("InputAbstractJavadocInvalidAtSeeReference.java"),
+            singletonList("3: " + getCheckMessage(MSG_KEY_UNRECOGNIZED_ANTLR_ERROR, 0, null)
         ));
         verify(createChecker(checkConfig), new File[] {
-            new File(getPath("InputParsingErrors.java")),
-            new File(getPath("InputTestInvalidAtSeeReference.java")), }, expectedMessages);
+            new File(getPath("InputAbstractJavadocParsingErrors.java")),
+            new File(getPath("InputAbstractJavadocInvalidAtSeeReference.java")), },
+                expectedMessages);
     }
 
     @Test
@@ -133,7 +134,8 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
             "4: " + getCheckMessage(MSG_JAVADOC_MISSED_HTML_CLOSE, 4, "unclosedTag"),
             "7: " + getCheckMessage(MSG_KEY_UNRECOGNIZED_ANTLR_ERROR, 4, null),
         };
-        verify(checkConfig, getPath("InputTestUnclosedTagAndInvalidAtSeeReference.java"), expected);
+        verify(checkConfig,
+            getPath("InputAbstractJavadocUnclosedTagAndInvalidAtSeeReference.java"), expected);
     }
 
     @Test
@@ -142,7 +144,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         JavadocCatchCheck.clearCounter();
         final DefaultConfiguration checkConfig = createCheckConfig(JavadocCatchCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputJavadocPosition.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocPosition.java"), expected);
         Assert.assertEquals(58, JavadocCatchCheck.javadocsNumber);
     }
 
@@ -152,7 +154,8 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         JavadocCatchCheck.clearCounter();
         final DefaultConfiguration checkConfig = createCheckConfig(JavadocCatchCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputJavadocPositionWithSinglelineComments.java"), expected);
+        verify(checkConfig,
+            getPath("InputAbstractJavadocPositionWithSinglelineComments.java"), expected);
         Assert.assertEquals(58, JavadocCatchCheck.javadocsNumber);
     }
 
@@ -162,13 +165,37 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         JavadocCatchCheck.clearCounter();
         final DefaultConfiguration checkConfig = createCheckConfig(JavadocCatchCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputJavadocPositionOnlyComments.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocPositionOnlyComments.java"), expected);
         Assert.assertEquals(0, JavadocCatchCheck.javadocsNumber);
     }
 
     @Test
     public void testBlockCommentPositionHasPrivateConstr() throws Exception {
         TestUtils.assertUtilsClassHasPrivateConstructor(BlockCommentPosition.class);
+    }
+
+    @Test
+    public void testTokens() throws Exception {
+        final int[] defaultJavadocTokens = {JavadocTokenTypes.JAVADOC};
+        final AbstractJavadocCheck check = new AbstractJavadocCheck() {
+
+            @Override
+            public void visitJavadocToken(DetailNode ast) {
+                // no code necessary
+            }
+
+            @Override
+            public int[] getDefaultJavadocTokens() {
+                return defaultJavadocTokens;
+            }
+        };
+
+        Assert.assertNotNull(check.getDefaultTokens());
+        Assert.assertArrayEquals(check.getDefaultTokens(), check.getAcceptableTokens());
+        Assert.assertArrayEquals(check.getDefaultTokens(), check.getRequiredTokens());
+        Assert.assertArrayEquals(defaultJavadocTokens, check.getDefaultJavadocTokens());
+        Assert.assertArrayEquals(defaultJavadocTokens, check.getAcceptableJavadocTokens());
+        Assert.assertNotEquals(defaultJavadocTokens, check.getRequiredJavadocTokens());
     }
 
     @Test
@@ -179,7 +206,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         checkConfig.addAttribute("javadocTokens", "RETURN_LITERAL");
         try {
             final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-            verify(checkConfig, getPath("InputMain.java"), expected);
+            verify(checkConfig, getPath("InputAbstractJavadocMain.java"), expected);
             Assert.fail("CheckstyleException is expected");
         }
         catch (IllegalStateException ex) {
@@ -197,7 +224,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         checkConfig.addAttribute("javadocTokens", "DEPRECATED_LITERAL");
 
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputMain.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocMain.java"), expected);
     }
 
     @Test
@@ -224,7 +251,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         JavadocVisitLeaveCheck.clearCounter();
         final DefaultConfiguration checkConfig = createCheckConfig(JavadocVisitLeaveCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputJavadocPosition.java"), expected);
+        verify(checkConfig, getPath("InputAbstractJavadocPosition.java"), expected);
         Assert.assertTrue(JavadocVisitLeaveCheck.visitCount > 0);
         Assert.assertEquals(JavadocVisitLeaveCheck.visitCount, JavadocVisitLeaveCheck.leaveCount);
     }
@@ -237,16 +264,6 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         }
 
         @Override
-        public int[] getAcceptableTokens() {
-            return new int[] {TokenTypes.BLOCK_COMMENT_BEGIN };
-        }
-
-        @Override
-        public int[] getRequiredTokens() {
-            return new int[] {TokenTypes.BLOCK_COMMENT_BEGIN };
-        }
-
-        @Override
         public void visitJavadocToken(DetailNode ast) {
             // do nothing
         }
@@ -255,7 +272,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
     private static class JavadocCatchCheck extends AbstractJavadocCheck {
         private static int javadocsNumber;
 
-        static void clearCounter() {
+        public static void clearCounter() {
             javadocsNumber = 0;
         }
 
@@ -265,18 +282,8 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         }
 
         @Override
-        public int[] getAcceptableTokens() {
-            return new int[] {TokenTypes.BLOCK_COMMENT_BEGIN };
-        }
-
-        @Override
-        public int[] getRequiredTokens() {
-            return new int[] {TokenTypes.BLOCK_COMMENT_BEGIN };
-        }
-
-        @Override
         public void visitJavadocToken(DetailNode ast) {
-            Assert.assertEquals(ast.toString(), "Javadoc<EOF>", ast.getText());
+            Assert.assertEquals(ast.toString(), "JAVADOC", ast.getText());
             javadocsNumber++;
         }
     }
@@ -329,7 +336,7 @@ public class AbstractJavadocCheckTest extends BaseCheckTestSupport {
         private static int visitCount;
         private static int leaveCount;
 
-        static void clearCounter() {
+        public static void clearCounter() {
             visitCount = 0;
             leaveCount = 0;
         }

@@ -34,7 +34,7 @@
         <module name="PublicReferenceToPrivateTypeCheck"/>
         <module name="NoNullForCollectionReturnCheck"/>
         <module name="NoMainMethodInAbstractClass"/>
-        <module name="InterfaceTypeParameterNameCheck"/>
+        <module name="com.github.sevntu.checkstyle.checks.naming.InterfaceTypeParameterNameCheck"/>
         <module name="ForbidThrowAnonymousExceptionsCheck"/>
         <module name="ForbidReturnInFinallyBlock"/>
         <module name="ForbidInstantiation">
@@ -88,7 +88,7 @@
         <module name="WhitespaceBeforeArrayInitializer"/>
         <module name="InnerClass"/>
         <module name="EnumValueNameCheck">
-            <property name="objFormat" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+            <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
         </module>
         <module name="OverridableMethodInConstructor">
             <property name="checkCloneMethod" value="true"/>
@@ -190,7 +190,7 @@
         <module name="NumericLiteralNeedsUnderscoreCheck"/>
         <module name="UniformEnumConstantNameCheck" />
         <module name="ForbidAnnotationElementValueCheck" />
-        <module name="HideUtilityClassConstructorCheck" />
+        <module name="com.github.sevntu.checkstyle.checks.design.HideUtilityClassConstructorCheck" />
         <module name="AvoidModifiersForTypesCheck">
           <property name="forbiddenClassesRegexpProtected" value="Logger"/>
           <property name="forbiddenClassesRegexpPublic" value="Logger"/>
@@ -201,5 +201,6 @@
           <property name="ignoredClassNameFormat" value="UnsupportedOperationException"/>
         </module>
         <module name="ReturnCountExtendedCheck" />
+        <module name="MoveVariableInsideIfCheck" />
     </module>
 </module>

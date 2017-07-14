@@ -36,14 +36,18 @@ public class ArrayTypeStyleCheckTest
     extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
-        return super.getPath("checks" + File.separator + filename);
+        return super.getPath("checks" + File.separator
+                + "misc" + File.separator
+                + "arraytypestyle" + File.separator
+                + filename);
     }
 
     @Test
     public void testGetRequiredTokens() {
         final ArrayTypeStyleCheck checkObj = new ArrayTypeStyleCheck();
         final int[] expected = {TokenTypes.ARRAY_DECLARATOR};
-        assertArrayEquals(expected, checkObj.getRequiredTokens());
+        assertArrayEquals("Required tokens differs from expected",
+                expected, checkObj.getRequiredTokens());
     }
 
     @Test
@@ -78,7 +82,9 @@ public class ArrayTypeStyleCheckTest
         final int[] expected = {TokenTypes.ARRAY_DECLARATOR };
         final ArrayTypeStyleCheck check = new ArrayTypeStyleCheck();
         final int[] actual = check.getAcceptableTokens();
-        assertEquals(1, actual.length);
-        assertArrayEquals(expected, actual);
+        assertEquals("Amount of acceptable tokens differs from expected",
+                1, actual.length);
+        assertArrayEquals("Acceptable tokens differs from expected",
+                expected, actual);
     }
 }

@@ -71,6 +71,11 @@ public class XdocsPagesTest {
     private static final String LINK_TEMPLATE =
             "(?s).*<a href=\"config_\\w+\\.html#%1$s\">%1$s</a>.*";
 
+    private static final Pattern VERSION = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
+
+    private static final Pattern DESCRIPTION_VERSION = Pattern
+            .compile("^Since Checkstyle \\d+\\.\\d+(\\.\\d+)?");
+
     private static final List<String> XML_FILESET_LIST = Arrays.asList(
             "TreeWalker",
             "name=\"Checker\"",
@@ -346,6 +351,7 @@ public class XdocsPagesTest {
 
             switch (subSectionPos) {
                 case 0:
+                    validateSinceDescriptionSection(fileName, sectionName, subSection);
                     break;
                 case 1:
                     validatePropertySection(fileName, sectionName, subSection, instance);
@@ -370,6 +376,14 @@ public class XdocsPagesTest {
 
             subSectionPos++;
         }
+    }
+
+    private static void validateSinceDescriptionSection(String fileName, String sectionName,
+            Node subSection) {
+        Assert.assertTrue(fileName + " section '" + sectionName
+                + "' should have a valid version at the start of the description like:\n"
+                + DESCRIPTION_VERSION.pattern(),
+                DESCRIPTION_VERSION.matcher(subSection.getTextContent().trim()).find());
     }
 
     private static Object getSubSectionName(int subSectionPos) {
@@ -444,7 +458,7 @@ public class XdocsPagesTest {
 
         // remove undocumented properties
         new HashSet<>(properties).stream()
-            .filter(p -> UNDOCUMENTED_PROPERTIES.contains(clss.getSimpleName() + "." + p))
+            .filter(prop -> UNDOCUMENTED_PROPERTIES.contains(clss.getSimpleName() + "." + prop))
             .forEach(properties::remove);
 
         if (AbstractCheck.class.isAssignableFrom(clss)) {
@@ -487,14 +501,34 @@ public class XdocsPagesTest {
         boolean didTokens = false;
 
         for (Node row : XmlUtil.getChildrenElements(XmlUtil.getFirstChildElement(subSection))) {
+            final List<Node> columns = new ArrayList<>(XmlUtil.getChildrenElements(row));
+
+            Assert.assertEquals(fileName + " section '" + sectionName
+                    + "' should have the requested columns", 5, columns.size());
+
             if (skip) {
+                Assert.assertEquals(fileName + " section '" + sectionName
+                        + "' should have the specific title", "name", columns.get(0)
+                        .getTextContent());
+                Assert.assertEquals(fileName + " section '" + sectionName
+                        + "' should have the specific title", "description", columns.get(1)
+                        .getTextContent());
+                Assert.assertEquals(fileName + " section '" + sectionName
+                        + "' should have the specific title", "type", columns.get(2)
+                        .getTextContent());
+                Assert.assertEquals(fileName + " section '" + sectionName
+                        + "' should have the specific title", "default value", columns.get(3)
+                        .getTextContent());
+                Assert.assertEquals(fileName + " section '" + sectionName
+                        + "' should have the specific title", "since", columns.get(4)
+                        .getTextContent());
+
                 skip = false;
                 continue;
             }
+
             Assert.assertFalse(fileName + " section '" + sectionName
                     + "' should have token properties last", didTokens);
-
-            final List<Node> columns = new ArrayList<>(XmlUtil.getChildrenElements(row));
 
             final String propertyName = columns.get(0).getTextContent();
             Assert.assertTrue(fileName + " section '" + sectionName
@@ -515,39 +549,53 @@ public class XdocsPagesTest {
                 Assert.assertFalse(fileName + " section '" + sectionName
                         + "' should have javadoc token properties next to last, before tokens",
                         didJavadocTokens);
-                Assert.assertFalse(fileName + " section '" + sectionName
-                        + "' should have a description for " + propertyName, columns.get(1)
-                        .getTextContent().trim().isEmpty());
 
-                final String actualTypeName = columns.get(2).getTextContent().replace("\n", "")
+                validatePropertySectionPropertyEx(fileName, sectionName, instance, columns,
+                        propertyName);
+            }
+
+            Assert.assertFalse(fileName + " section '" + sectionName
+                    + "' should have a version for " + propertyName, columns.get(4)
+                    .getTextContent().trim().isEmpty());
+            Assert.assertTrue(fileName + " section '" + sectionName
+                    + "' should have a valid version for " + propertyName,
+                    VERSION.matcher(columns.get(4).getTextContent().trim()).matches());
+        }
+    }
+
+    private static void validatePropertySectionPropertyEx(String fileName, String sectionName,
+            Object instance, List<Node> columns, String propertyName) throws Exception {
+        Assert.assertFalse(fileName + " section '" + sectionName
+                + "' should have a description for " + propertyName, columns.get(1)
+                .getTextContent().trim().isEmpty());
+
+        final String actualTypeName = columns.get(2).getTextContent().replace("\n", "")
+                .replace("\r", "").replaceAll(" +", " ").trim();
+
+        Assert.assertFalse(fileName + " section '" + sectionName + "' should have a type for "
+                + propertyName, actualTypeName.isEmpty());
+
+        final PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(instance,
+                propertyName);
+        final Class<?> clss = descriptor.getPropertyType();
+        final String expectedTypeName = getModulePropertyExpectedTypeName(clss, instance,
+                propertyName);
+
+        if (expectedTypeName != null) {
+            final String expectedValue = getModulePropertyExpectedValue(clss, instance,
+                    propertyName);
+
+            Assert.assertEquals(fileName + " section '" + sectionName
+                    + "' should have the type for " + propertyName, expectedTypeName,
+                    actualTypeName);
+
+            if (expectedValue != null) {
+                final String actualValue = columns.get(3).getTextContent().replace("\n", "")
                         .replace("\r", "").replaceAll(" +", " ").trim();
 
-                Assert.assertFalse(fileName + " section '" + sectionName
-                        + "' should have a type for " + propertyName, actualTypeName.isEmpty());
-
-                final PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(instance,
-                        propertyName);
-                final Class<?> clss = descriptor.getPropertyType();
-                final String expectedTypeName =
-                        getModulePropertyExpectedTypeName(clss, instance, propertyName);
-
-                if (expectedTypeName != null) {
-                    final String expectedValue = getModulePropertyExpectedValue(clss, instance,
-                            propertyName);
-
-                    Assert.assertEquals(fileName + " section '" + sectionName
-                            + "' should have the type for " + propertyName, expectedTypeName,
-                            actualTypeName);
-
-                    if (expectedValue != null) {
-                        final String actualValue = columns.get(3).getTextContent().replace("\n", "")
-                                .replace("\r", "").replaceAll(" +", " ").trim();
-
-                        Assert.assertEquals(fileName + " section '" + sectionName
-                                + "' should have the value for " + propertyName, expectedValue,
-                                actualValue);
-                    }
-                }
+                Assert.assertEquals(fileName + " section '" + sectionName
+                        + "' should have the value for " + propertyName, expectedValue,
+                        actualValue);
             }
         }
     }
@@ -715,7 +763,7 @@ public class XdocsPagesTest {
                 result = clss.getDeclaredField(propertyName);
                 result.setAccessible(true);
             }
-            catch (NoSuchFieldException ex) {
+            catch (NoSuchFieldException ignored) {
                 result = getField(clss.getSuperclass(), propertyName);
             }
         }
@@ -738,11 +786,11 @@ public class XdocsPagesTest {
             list.add(field.get(null).toString());
         }
 
-        final StringBuilder expectedText = new StringBuilder();
+        final StringBuilder expectedText = new StringBuilder(120);
 
         for (String s : list) {
             expectedText.append(s);
-            expectedText.append("\n");
+            expectedText.append('\n');
         }
 
         if (expectedText.length() > 0) {

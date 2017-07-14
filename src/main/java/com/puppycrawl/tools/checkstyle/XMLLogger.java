@@ -143,7 +143,6 @@ public class XMLLogger
         throwable.printStackTrace(printer);
         printer.println("]]>");
         printer.println("</exception>");
-        printer.flush();
         writer.println(encode(stringWriter.toString()));
     }
 
@@ -172,6 +171,11 @@ public class XMLLogger
                 case '&':
                     sb.append(encodeAmpersand(value, i));
                     break;
+                case '\r':
+                    break;
+                case '\n':
+                    sb.append("&#10;");
+                    break;
                 default:
                     sb.append(chr);
                     break;
@@ -181,6 +185,7 @@ public class XMLLogger
     }
 
     /**
+     * Finds whether the given argument is character or entity reference.
      * @param ent the possible entity to look for.
      * @return whether the given argument a character or entity reference
      */
@@ -229,7 +234,7 @@ public class XMLLogger
     private static String encodeAmpersand(String value, int ampPosition) {
         final int nextSemi = value.indexOf(';', ampPosition);
         final String result;
-        if (nextSemi < 0
+        if (nextSemi == -1
             || !isReference(value.substring(ampPosition, nextSemi + 1))) {
             result = "&amp;";
         }

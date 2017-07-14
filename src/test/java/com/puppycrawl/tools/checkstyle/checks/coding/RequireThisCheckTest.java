@@ -24,6 +24,7 @@ import static com.puppycrawl.tools.checkstyle.checks.coding.RequireThisCheck.MSG
 
 import java.io.File;
 import java.io.IOException;
+import java.util.SortedSet;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import antlr.CommonHiddenStreamToken;
 import com.puppycrawl.tools.checkstyle.BaseCheckTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
+import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 
@@ -152,9 +154,14 @@ public class RequireThisCheckTest extends BaseCheckTestSupport {
     @Test
     public void testDefaultSwitch() {
         final RequireThisCheck check = new RequireThisCheck();
+
         final DetailAST ast = new DetailAST();
         ast.initialize(new CommonHiddenStreamToken(TokenTypes.ENUM, "ENUM"));
+
         check.visitToken(ast);
+        final SortedSet<LocalizedMessage> messages = check.getMessages();
+
+        Assert.assertEquals("No exception messages expected", 0, messages.size());
     }
 
     @Test
@@ -275,5 +282,19 @@ public class RequireThisCheckTest extends BaseCheckTestSupport {
             "47:16: " + getCheckMessage(MSG_VARIABLE, "s1", ""),
         };
         verify(checkConfig, getPath("InputRequireThisAllowLocalVars.java"), expected);
+    }
+
+    @Test
+    public void testAllowLambdaParameters() throws Exception {
+        final DefaultConfiguration checkConfig = createCheckConfig(RequireThisCheck.class);
+        checkConfig.addAttribute("validateOnlyOverlapping", "false");
+        checkConfig.addAttribute("checkMethods", "false");
+        final String[] expected = {
+            "13:9: " + getCheckMessage(MSG_VARIABLE, "s1", ""),
+            "35:21: " + getCheckMessage(MSG_VARIABLE, "z", ""),
+            "60:29: " + getCheckMessage(MSG_VARIABLE, "a", ""),
+            "60:34: " + getCheckMessage(MSG_VARIABLE, "b", ""),
+        };
+        verify(checkConfig, getPath("InputRequireThisAllowLambdaParameters.java"), expected);
     }
 }

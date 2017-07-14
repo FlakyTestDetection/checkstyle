@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableMap;
 import com.puppycrawl.tools.checkstyle.grammars.CommentListener;
+import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 
 /**
  * Represents the contents of a file.
@@ -76,7 +77,7 @@ public final class FileContents implements CommentListener {
     @Deprecated
     public FileContents(String filename, String... lines) {
         fileName = filename;
-        text = FileText.fromLines(new File(filename), Arrays.asList(lines));
+        text = new FileText(new File(filename), Arrays.asList(lines));
     }
 
     /**
@@ -307,23 +308,12 @@ public final class FileContents implements CommentListener {
     }
 
     /**
-     * Getter.
-     * @return the name of the file
-     * @deprecated use {@link #getFileName} instead
-     */
-    @Deprecated
-    public String getFilename() {
-        return fileName;
-    }
-
-    /**
      * Checks if the specified line is blank.
      * @param lineNo the line number to check
      * @return if the specified line consists only of tabs and spaces.
      **/
     public boolean lineIsBlank(int lineNo) {
-        // possible improvement: avoid garbage creation in trim()
-        return line(lineNo).trim().isEmpty();
+        return CommonUtils.isBlank(line(lineNo));
     }
 
     /**

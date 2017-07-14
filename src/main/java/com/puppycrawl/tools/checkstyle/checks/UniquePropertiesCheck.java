@@ -22,7 +22,6 @@ package com.puppycrawl.tools.checkstyle.checks;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +31,7 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multiset.Entry;
 import com.puppycrawl.tools.checkstyle.api.AbstractFileSetCheck;
+import com.puppycrawl.tools.checkstyle.api.FileText;
 
 /**
  * Checks the uniqueness of property keys (left from equal sign) in the
@@ -63,7 +63,7 @@ public class UniquePropertiesCheck extends AbstractFileSetCheck {
     }
 
     @Override
-    protected void processFiltered(File file, List<String> lines) {
+    protected void processFiltered(File file, FileText fileText) {
         final UniqueProperties properties = new UniqueProperties();
 
         try {
@@ -84,7 +84,7 @@ public class UniquePropertiesCheck extends AbstractFileSetCheck {
         for (Entry<String> duplication : properties
                 .getDuplicatedKeys().entrySet()) {
             final String keyName = duplication.getElement();
-            final int lineNumber = getLineNumber(lines, keyName);
+            final int lineNumber = getLineNumber(fileText, keyName);
             // Number of occurrences is number of duplications + 1
             log(lineNumber, MSG_KEY, keyName, duplication.getCount() + 1);
         }
@@ -94,30 +94,42 @@ public class UniquePropertiesCheck extends AbstractFileSetCheck {
      * Method returns line number the key is detected in the checked properties
      * files first.
      *
-     * @param lines
-     *            properties file lines list
+     * @param fileText
+     *            {@link FileText} object contains the lines to process
      * @param keyName
      *            key name to look for
      * @return line number of first occurrence. If no key found in properties
      *         file, 0 is returned
      */
-    protected static int getLineNumber(List<String> lines, String keyName) {
-        final String keyPatternString = "^" + SPACE_PATTERN.matcher(keyName)
-                        .replaceAll(Matcher.quoteReplacement("\\\\ ")) + "[\\s:=].*$";
-        final Pattern keyPattern = Pattern.compile(keyPatternString);
+    private static int getLineNumber(FileText fileText, String keyName) {
+        final Pattern keyPattern = getKeyPattern(keyName);
         int lineNumber = 1;
         final Matcher matcher = keyPattern.matcher("");
-        for (String line : lines) {
+        for (int index = 0; index < fileText.size(); index++) {
+            final String line = fileText.get(index);
             matcher.reset(line);
             if (matcher.matches()) {
                 break;
             }
             ++lineNumber;
         }
-        if (lineNumber > lines.size()) {
+        if (lineNumber > fileText.size()) {
             lineNumber = 0;
         }
         return lineNumber;
+    }
+
+    /**
+     * Method returns regular expression pattern given key name.
+     *
+     * @param keyName
+     *            key name to look for
+     * @return regular expression pattern given key name
+     */
+    private static Pattern getKeyPattern(String keyName) {
+        final String keyPatternString = "^" + SPACE_PATTERN.matcher(keyName)
+                .replaceAll(Matcher.quoteReplacement("\\\\ ")) + "[\\s:=].*$";
+        return Pattern.compile(keyPatternString);
     }
 
     /**

@@ -36,21 +36,24 @@ public class AtclauseOrderCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
         return super.getPath("checks" + File.separator
-                + "javadoc" + File.separator + filename);
+                + "javadoc" + File.separator
+                + "atclauseorder" + File.separator + filename);
     }
 
     @Test
     public void testGetAcceptableTokens() {
         final AtclauseOrderCheck checkObj = new AtclauseOrderCheck();
         final int[] expected = {TokenTypes.BLOCK_COMMENT_BEGIN};
-        assertArrayEquals(expected, checkObj.getAcceptableTokens());
+        assertArrayEquals("Default acceptable tokens are invalid",
+            expected, checkObj.getAcceptableTokens());
     }
 
     @Test
     public void testGetRequiredTokens() {
         final AtclauseOrderCheck checkObj = new AtclauseOrderCheck();
         final int[] expected = {TokenTypes.BLOCK_COMMENT_BEGIN};
-        assertArrayEquals(expected, checkObj.getRequiredTokens());
+        assertArrayEquals("Default required tokens are invalid",
+            expected, checkObj.getRequiredTokens());
     }
 
     @Test
@@ -58,7 +61,7 @@ public class AtclauseOrderCheckTest extends BaseCheckTestSupport {
         final DefaultConfiguration checkConfig = createCheckConfig(AtclauseOrderCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
-        verify(checkConfig, getPath("InputCorrectAtClauseOrder.java"), expected);
+        verify(checkConfig, getPath("InputAtClauseOrderCorrect.java"), expected);
     }
 
     @Test
@@ -108,7 +111,7 @@ public class AtclauseOrderCheckTest extends BaseCheckTestSupport {
             "278: " + getCheckMessage(MSG_KEY, tagOrder),
             "288: " + getCheckMessage(MSG_KEY, tagOrder),
         };
-        verify(checkConfig, getPath("InputIncorrectAtClauseOrder.java"), expected);
+        verify(checkConfig, getPath("InputAtClauseOrderIncorrect.java"), expected);
     }
 
     @Test
@@ -125,6 +128,6 @@ public class AtclauseOrderCheckTest extends BaseCheckTestSupport {
         final String[] expected = {
             "113: " + getCheckMessage(MSG_KEY, tagOrder),
         };
-        verify(checkConfig, getPath("InputIncorrectAtClauseOrder.java"), expected);
+        verify(checkConfig, getPath("InputAtClauseOrderIncorrect.java"), expected);
     }
 }

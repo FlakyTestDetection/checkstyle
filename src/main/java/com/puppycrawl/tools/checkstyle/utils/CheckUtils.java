@@ -150,6 +150,7 @@ public final class CheckUtils {
     }
 
     /**
+     * Returns FullIndent for given type.
      * @param typeAST a type node (no array)
      * @return {@code FullIdent} for given type.
      */
@@ -338,7 +339,7 @@ public final class CheckUtils {
             final DetailAST type = ast.findFirstToken(TokenTypes.TYPE);
             final String name = type.getNextSibling().getText();
             final boolean matchesSetterFormat = SETTER_PATTERN.matcher(name).matches();
-            final boolean voidReturnType = type.getChildCount(TokenTypes.LITERAL_VOID) > 0;
+            final boolean voidReturnType = type.findFirstToken(TokenTypes.LITERAL_VOID) != null;
 
             final DetailAST params = ast.findFirstToken(TokenTypes.PARAMETERS);
             final boolean singleParam = params.getChildCount(TokenTypes.PARAMETER_DEF) == 1;
@@ -376,7 +377,7 @@ public final class CheckUtils {
             final DetailAST type = ast.findFirstToken(TokenTypes.TYPE);
             final String name = type.getNextSibling().getText();
             final boolean matchesGetterFormat = GETTER_PATTERN.matcher(name).matches();
-            final boolean noVoidReturnType = type.getChildCount(TokenTypes.LITERAL_VOID) == 0;
+            final boolean noVoidReturnType = type.findFirstToken(TokenTypes.LITERAL_VOID) == null;
 
             final DetailAST params = ast.findFirstToken(TokenTypes.PARAMETERS);
             final boolean noParams = params.getChildCount(TokenTypes.PARAMETER_DEF) == 0;

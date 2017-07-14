@@ -54,13 +54,13 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
         return super.getPath("checks" + File.separator
-                + "imports" + File.separator + filename);
+                + "imports" + File.separator + "customimportorder" + File.separator + filename);
     }
 
     @Override
     protected String getNonCompilablePath(String filename) throws IOException {
         return super.getNonCompilablePath("checks" + File.separator
-                + "imports" + File.separator + filename);
+                + "imports" + File.separator + "customimportorder" + File.separator + filename);
     }
 
     @Test
@@ -71,7 +71,8 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
             TokenTypes.STATIC_IMPORT,
             TokenTypes.PACKAGE_DEF,
         };
-        assertArrayEquals(expected, checkObj.getRequiredTokens());
+        assertArrayEquals("Default required tokens are invalid",
+            expected, checkObj.getRequiredTokens());
     }
 
     @Test
@@ -101,7 +102,7 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
             "18: " + getCheckMessage(MSG_ORDER, STD, SAME, "java.io.Reader"),
         };
 
-        verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+        verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
     }
 
     /**
@@ -130,7 +131,7 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
                 "com.puppycrawl.tools.*"),
         };
 
-        verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+        verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
     }
 
     /**
@@ -159,7 +160,7 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
             "23: " + getCheckMessage(MSG_LINE_SEPARATOR, "org.junit.*"),
         };
 
-        verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+        verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
     }
 
     @Test
@@ -185,7 +186,7 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
             "16: " + getCheckMessage(MSG_LEX, "com.google.common.base.*", "com.puppycrawl.tools.*"),
         };
 
-        verify(checkConfig, getPath("InputCustomImportOrder2.java"), expected);
+        verify(checkConfig, getPath("InputCustomImportOrderDefault2.java"), expected);
     }
 
     @Test
@@ -281,7 +282,8 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
             "5: " + getCheckMessage(MSG_NONGROUP_EXPECTED, THIRD, "org.w3c.dom.Node"),
         };
 
-        verify(checkConfig, getPath("InputDOMSource.java"), expected);
+        verify(checkConfig,
+            getPath("InputCustomImportOrderPossibleIndexOutOfBoundsException.java"), expected);
     }
 
     @Test
@@ -309,7 +311,8 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
             "23: " + getCheckMessage(MSG_LEX, "com.google.common.*", "com.puppycrawl.tools.*"),
         };
 
-        verify(checkConfig, getNonCompilablePath("InputDefaultPackage.java"), expected);
+        verify(checkConfig, getNonCompilablePath("InputCustomImportOrderDefaultPackage.java"),
+            expected);
     }
 
     @Test
@@ -366,7 +369,7 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
             TokenTypes.PACKAGE_DEF,
         };
 
-        assertArrayEquals(expected, actual);
+        assertArrayEquals("Default acceptable tokens are invalid", expected, actual);
     }
 
     @Test
@@ -387,7 +390,7 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
         }
 
         final String expected = "";
-        assertEquals(expected, actual);
+        assertEquals("Invalid getFullImportIdent result", expected, actual);
     }
 
     @Test
@@ -478,14 +481,16 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
         try {
             final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
-            verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+            verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue(ex.getMessage().startsWith(
-                    "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
-                            + "Cannot set property 'customImportOrderRules' to "
-                            + "'SAME_PACKAGE(-1)' in module"));
+            final String messageStart =
+                "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
+                    + "Cannot set property 'customImportOrderRules' to "
+                    + "'SAME_PACKAGE(-1)' in module";
+            assertTrue("Invalid exception message, should start with: " + messageStart,
+                ex.getMessage().startsWith(messageStart));
         }
     }
 
@@ -501,14 +506,16 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
         try {
             final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
-            verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+            verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue(ex.getMessage().startsWith(
-                    "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
-                            + "Cannot set property 'customImportOrderRules' to "
-                            + "'SAME_PACKAGE(0)' in module"));
+            final String messageStart =
+                "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
+                    + "Cannot set property 'customImportOrderRules' to "
+                    + "'SAME_PACKAGE(0)' in module";
+            assertTrue("Invalid exception message, should start with: " + messageStart,
+                ex.getMessage().startsWith(messageStart));
         }
     }
 
@@ -523,14 +530,16 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
         try {
             final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
-            verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+            verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue(ex.getMessage().startsWith(
-                    "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
-                            + "Cannot set property 'customImportOrderRules' to "
-                            + "'SAME_PACKAGE(3)###UNSUPPORTED_RULE' in module"));
+            final String messageStart =
+                "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
+                    + "Cannot set property 'customImportOrderRules' to "
+                    + "'SAME_PACKAGE(3)###UNSUPPORTED_RULE' in module";
+            assertTrue("Invalid exception message, should start with: " + messageStart,
+                ex.getMessage().startsWith(messageStart));
         }
     }
 
@@ -544,14 +553,16 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
         try {
             final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
-            verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+            verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue(ex.getMessage().startsWith(
-                    "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
-                            + "Cannot set property 'customImportOrderRules' to "
-                            + "'SAME_PACKAGE(INT_IS_REQUIRED_HERE)' in module"));
+            final String messageStart =
+                "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
+                    + "Cannot set property 'customImportOrderRules' to "
+                    + "'SAME_PACKAGE(INT_IS_REQUIRED_HERE)' in module";
+            assertTrue("Invalid exception message, should start with: " + messageStart,
+                ex.getMessage().startsWith(messageStart));
         }
     }
 
@@ -572,7 +583,7 @@ public class CustomImportOrderCheckTest extends BaseCheckTestSupport {
 
         createChecker(checkConfig);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputCustomImportOrder.java"), expected);
+        verify(checkConfig, getPath("InputCustomImportOrderDefault.java"), expected);
     }
 
     @Test

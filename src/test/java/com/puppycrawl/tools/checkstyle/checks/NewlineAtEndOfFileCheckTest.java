@@ -44,6 +44,7 @@ import com.puppycrawl.tools.checkstyle.BaseCheckTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import com.puppycrawl.tools.checkstyle.api.Configuration;
+import com.puppycrawl.tools.checkstyle.api.FileText;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 
@@ -59,7 +60,10 @@ public class NewlineAtEndOfFileCheckTest
 
     @Override
     protected String getPath(String filename) throws IOException {
-        return super.getPath("checks" + File.separator + filename);
+        return super.getPath("checks" + File.separator
+                + "misc" + File.separator
+                + "newlineatendoffile" + File.separator
+                + filename);
     }
 
     @Test
@@ -157,7 +161,8 @@ public class NewlineAtEndOfFileCheckTest
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue(ex.getMessage().startsWith(
+            assertTrue("Error message is unexpected",
+                    ex.getMessage().startsWith(
                     "cannot initialize module com.puppycrawl.tools.checkstyle."
                             + "checks.NewlineAtEndOfFileCheck - "
                             + "Cannot set property 'lineSeparator' to 'ct' in module"));
@@ -186,10 +191,13 @@ public class NewlineAtEndOfFileCheckTest
         final List<String> lines = new ArrayList<>(1);
         lines.add("txt");
         final File impossibleFile = new File("");
-        final Set<LocalizedMessage> messages = check.process(impossibleFile, lines);
-        assertEquals(1, messages.size());
+        final FileText fileText = new FileText(impossibleFile, lines);
+        final Set<LocalizedMessage> messages = check.process(impossibleFile, fileText);
+        assertEquals("Ammount of messages is unexpected",
+                1, messages.size());
         final Iterator<LocalizedMessage> iterator = messages.iterator();
-        assertEquals(getCheckMessage(MSG_KEY_UNABLE_OPEN, ""), iterator.next().getMessage());
+        assertEquals("Violation message differs from expected",
+                getCheckMessage(MSG_KEY_UNABLE_OPEN, ""), iterator.next().getMessage());
     }
 
     @Test
@@ -207,12 +215,15 @@ public class NewlineAtEndOfFileCheckTest
             method.invoke(new NewlineAtEndOfFileCheck(), file);
         }
         catch (InvocationTargetException ex) {
-            assertTrue(ex.getCause() instanceof IOException);
+            assertTrue("Error type is unexpected",
+                    ex.getCause() instanceof IOException);
             if (System.getProperty("os.name").toLowerCase(ENGLISH).startsWith("windows")) {
-                assertEquals("Unable to read 2 bytes, got 0", ex.getCause().getMessage());
+                assertEquals("Error message is unexpected",
+                        "Unable to read 2 bytes, got 0", ex.getCause().getMessage());
             }
             else {
-                assertEquals("Unable to read 1 bytes, got 0", ex.getCause().getMessage());
+                assertEquals("Error message is unexpected",
+                        "Unable to read 1 bytes, got 0", ex.getCause().getMessage());
             }
         }
     }

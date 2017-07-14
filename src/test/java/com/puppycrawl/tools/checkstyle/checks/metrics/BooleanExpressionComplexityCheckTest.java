@@ -39,7 +39,8 @@ public class BooleanExpressionComplexityCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
         return super.getPath("checks" + File.separator
-                + "metrics" + File.separator + filename);
+                + "metrics" + File.separator + "booleanexpressioncomplexity" + File.separator
+                + filename);
     }
 
     @Test
@@ -90,7 +91,8 @@ public class BooleanExpressionComplexityCheckTest extends BaseCheckTestSupport {
             fail("exception expected");
         }
         catch (IllegalArgumentException ex) {
-            assertEquals("Unknown type: interface[0x-1]", ex.getMessage());
+            assertEquals("Invalid exception message",
+                "Unknown type: interface[0x-1]", ex.getMessage());
         }
     }
 }

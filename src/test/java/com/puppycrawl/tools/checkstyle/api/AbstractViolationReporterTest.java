@@ -50,20 +50,22 @@ public class AbstractViolationReporterTest extends BaseCheckTestSupport {
 
     @Test
     public void testGetMessageBundleWithPackage() throws Exception {
-        assertEquals("com.mycompany.checks.messages",
+        assertEquals("Message bundle differs from expected",
+                "com.mycompany.checks.messages",
             getGetMessageBundleMethod().invoke(null, "com.mycompany.checks.MyCoolCheck"));
     }
 
     @Test
     public void testGetMessageBundleWithoutPackage() throws Exception {
-        assertEquals("messages",
+        assertEquals("Message bundle differs from expected",
+                "messages",
             getGetMessageBundleMethod().invoke(null, "MyCoolCheck"));
     }
 
     @Test
     public void testCustomId() {
         emptyCheck.setId("MyId");
-        assertEquals("MyId", emptyCheck.getId());
+        assertEquals("Id differs from expected", "MyId", emptyCheck.getId());
     }
 
     @Test
@@ -72,14 +74,14 @@ public class AbstractViolationReporterTest extends BaseCheckTestSupport {
         config.addMessage("msgKey", "This is a custom message.");
         emptyCheck.configure(config);
 
-        final LocalizedMessages collector = new LocalizedMessages();
-        emptyCheck.setMessages(collector);
-
         emptyCheck.log(0, "msgKey");
 
-        final SortedSet<LocalizedMessage> messages = collector.getMessages();
-        assertEquals(1, messages.size());
-        assertEquals("This is a custom message.", messages.first()
+        final SortedSet<LocalizedMessage> messages = emptyCheck.getMessages();
+
+        assertEquals("Amount of messages differs from expected",
+                1, messages.size());
+        assertEquals("Message differs from expected",
+                "This is a custom message.", messages.first()
                 .getMessage());
     }
 
@@ -89,15 +91,14 @@ public class AbstractViolationReporterTest extends BaseCheckTestSupport {
         config.addMessage("msgKey", "This is a custom message with {0}.");
         emptyCheck.configure(config);
 
-        final LocalizedMessages collector = new LocalizedMessages();
-        emptyCheck.setMessages(collector);
-
         emptyCheck.log(0, "msgKey", "TestParam");
+        final SortedSet<LocalizedMessage> messages = emptyCheck.getMessages();
 
-        final SortedSet<LocalizedMessage> messages = collector.getMessages();
-        assertEquals(1, messages.size());
+        assertEquals("Amount of messages differs from expected",
+                1, messages.size());
 
-        assertEquals("This is a custom message with TestParam.",
+        assertEquals("Message differs from expected",
+                "This is a custom message with TestParam.",
                 messages.first().getMessage());
     }
 
@@ -107,15 +108,13 @@ public class AbstractViolationReporterTest extends BaseCheckTestSupport {
         config.addMessage("msgKey", "This is a custom message {0.");
         emptyCheck.configure(config);
 
-        final LocalizedMessages collector = new LocalizedMessages();
-        emptyCheck.setMessages(collector);
-
         try {
             emptyCheck.log(0, "msgKey", "TestParam");
             fail("exception expected");
         }
         catch (IllegalArgumentException ex) {
-            assertEquals("Unmatched braces in the pattern.", ex.getMessage());
+            assertEquals("Error message is unexpected",
+                    "Unmatched braces in the pattern.", ex.getMessage());
         }
     }
 

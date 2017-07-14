@@ -50,17 +50,17 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
         return super.getPath("checks" + File.separator
-                + "imports" + File.separator + filename);
+                + "imports" + File.separator + "importcontrol" + File.separator + filename);
     }
 
     @Override
     protected String getUriString(String filename) {
         return super.getUriString("checks" + File.separator
-                + "imports" + File.separator + filename);
+                + "imports" + File.separator + "importcontrol" + File.separator + filename);
     }
 
     private static String getResourcePath(String filename) {
-        return "/com/puppycrawl/tools/checkstyle/checks/imports/" + filename;
+        return "/com/puppycrawl/tools/checkstyle/checks/imports/importcontrol/" + filename;
     }
 
     @Test
@@ -71,13 +71,14 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
             TokenTypes.IMPORT,
             TokenTypes.STATIC_IMPORT,
         };
-        assertArrayEquals(expected, checkObj.getRequiredTokens());
+        assertArrayEquals("Default required tokens are invalid",
+            expected, checkObj.getRequiredTokens());
     }
 
     @Test
     public void testOne() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getPath("import-control_one.xml"));
+        checkConfig.addAttribute("file", getPath("InputImportControlOne.xml"));
         final String[] expected = {"5:1: " + getCheckMessage(MSG_DISALLOWED, "java.io.File")};
 
         verify(checkConfig, getPath("InputImportControl.java"), expected);
@@ -86,7 +87,7 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     @Test
     public void testTwo() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getPath("import-control_two.xml"));
+        checkConfig.addAttribute("file", getPath("InputImportControlTwo.xml"));
         final String[] expected = {
             "3:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Image"),
             "4:1: " + getCheckMessage(MSG_DISALLOWED, "javax.swing.border.*"),
@@ -99,7 +100,7 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     @Test
     public void testWrong() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getPath("import-control_wrong.xml"));
+        checkConfig.addAttribute("file", getPath("InputImportControlWrong.xml"));
         final String[] expected = {"1:1: " + getCheckMessage(MSG_UNKNOWN_PKG)};
         verify(checkConfig, getPath("InputImportControl.java"), expected);
     }
@@ -138,14 +139,17 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
         }
         catch (CheckstyleException ex) {
             final String message = getCheckstyleExceptionMessage(ex);
-            assertTrue(message.startsWith("Unable to find: "));
+            final String messageStart = "Unable to find: ";
+
+            assertTrue("Invalid message, should start with: " + messageStart,
+                message.startsWith(message));
         }
     }
 
     @Test
     public void testBroken() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getPath("import-control_broken.xml"));
+        checkConfig.addAttribute("file", getPath("InputImportControlBroken.xml"));
         try {
             final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
             verify(checkConfig, getPath("InputImportControl.java"), expected);
@@ -153,14 +157,17 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
         }
         catch (CheckstyleException ex) {
             final String message = getCheckstyleExceptionMessage(ex);
-            assertTrue(message.startsWith("Unable to load "));
+            final String messageStart = "Unable to load ";
+
+            assertTrue("Invalid message, should start with: " + messageStart,
+                message.startsWith(message));
         }
     }
 
     @Test
     public void testOneRegExp() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getPath("import-control_one-re.xml"));
+        checkConfig.addAttribute("file", getPath("InputImportControlOneRegExp.xml"));
         final String[] expected = {"5:1: " + getCheckMessage(MSG_DISALLOWED, "java.io.File")};
 
         verify(checkConfig, getPath("InputImportControl.java"), expected);
@@ -169,7 +176,7 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     @Test
     public void testTwoRegExp() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getPath("import-control_two-re.xml"));
+        checkConfig.addAttribute("file", getPath("InputImportControlTwoRegExp.xml"));
         final String[] expected = {
             "3:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Image"),
             "4:1: " + getCheckMessage(MSG_DISALLOWED, "javax.swing.border.*"),
@@ -180,18 +187,80 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     }
 
     @Test
+    public void testBlacklist() throws Exception {
+        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
+        checkConfig.addAttribute("file", getPath("InputImportControlBlacklist.xml"));
+        final String[] expected = {
+            "3:1: " + getCheckMessage(MSG_DISALLOWED, "java.util.stream.Stream"),
+            "4:1: " + getCheckMessage(MSG_DISALLOWED, "java.util.Date"),
+            "6:1: " + getCheckMessage(MSG_DISALLOWED, "java.util.stream.Collectors"),
+            "7:1: " + getCheckMessage(MSG_DISALLOWED, "java.util.stream.IntStream"),
+        };
+
+        verify(checkConfig, getPath("InputImportControl_Blacklist.java"), expected);
+    }
+
+    @Test
+    public void testStrategyOnMismatchOne() throws Exception {
+        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
+        checkConfig.addAttribute("file", getPath("InputImportControlStrategyOnMismatchOne.xml"));
+        final String[] expected = {
+            "3:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Image"),
+            "4:1: " + getCheckMessage(MSG_DISALLOWED, "javax.swing.border.*"),
+            "6:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Button.ABORT"),
+        };
+
+        verify(checkConfig, getPath("InputImportControl.java"), expected);
+    }
+
+    @Test
+    public void testStrategyOnMismatchTwo() throws Exception {
+        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
+        checkConfig.addAttribute("file", getPath("InputImportControlStrategyOnMismatchTwo.xml"));
+        final String[] expected = {
+            "3:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Image"),
+            "6:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Button.ABORT"),
+        };
+
+        verify(checkConfig, getPath("InputImportControl.java"), expected);
+    }
+
+    @Test
+    public void testStrategyOnMismatchThree() throws Exception {
+        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
+        checkConfig.addAttribute("file", getPath("InputImportControlStrategyOnMismatchThree.xml"));
+        final String[] expected = {
+            "3:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Image"),
+        };
+
+        verify(checkConfig, getPath("InputImportControl.java"), expected);
+    }
+
+    @Test
+    public void testStrategyOnMismatchFour() throws Exception {
+        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
+        checkConfig.addAttribute("file", getPath("InputImportControlStrategyOnMismatchFour.xml"));
+        final String[] expected = {
+            "3:1: " + getCheckMessage(MSG_DISALLOWED, "java.awt.Image"),
+            "4:1: " + getCheckMessage(MSG_DISALLOWED, "javax.swing.border.*"),
+        };
+
+        verify(checkConfig, getPath("InputImportControl.java"), expected);
+    }
+
+    @Test
     public void testPkgRegExpInParent() throws Exception {
-        testRegExpInPackage("import-control_pkg-re-in-parent.xml");
+        testRegExpInPackage("InputImportControlPkgRegExpInParent.xml");
     }
 
     @Test
     public void testPkgRegExpInChild() throws Exception {
-        testRegExpInPackage("import-control_pkg-re-in-child.xml");
+        testRegExpInPackage("InputImportControlPkgRegExpInChild.xml");
     }
 
     @Test
     public void testPkgRegExpInBoth() throws Exception {
-        testRegExpInPackage("import-control_pkg-re-in-both.xml");
+        testRegExpInPackage("InputImportControlPkgRegExpInBoth.xml");
     }
 
     // all import-control_pkg-re* files should be equivalent so use one test for all
@@ -214,72 +283,13 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
             TokenTypes.STATIC_IMPORT,
         };
 
-        assertArrayEquals(expected, actual);
-    }
-
-    @Test
-    public void testUrl() throws Exception {
-        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("url", getUriString("import-control_one.xml"));
-        final String[] expected = {"5:1: " + getCheckMessage(MSG_DISALLOWED, "java.io.File")};
-
-        verify(checkConfig, getPath("InputImportControl.java"), expected);
-    }
-
-    @Test
-    public void testUrlBlank() throws Exception {
-        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("url", "");
-        final String[] expected = {"1:1: " + getCheckMessage(MSG_MISSING_FILE)};
-
-        verify(checkConfig, getPath("InputImportControl.java"), expected);
-    }
-
-    @Test
-    public void testUrlNull() throws Exception {
-        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("url", null);
-        final String[] expected = {"1:1: " + getCheckMessage(MSG_MISSING_FILE)};
-
-        verify(checkConfig, getPath("InputImportControl.java"), expected);
-    }
-
-    @Test
-    public void testUrlUnableToLoad() throws Exception {
-        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("url", "https://UnableToLoadThisURL");
-
-        try {
-            final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-            verify(checkConfig, getPath("InputImportControl.java"), expected);
-            fail("Test should fail if exception was not thrown");
-        }
-        catch (final CheckstyleException ex) {
-            final String message = getCheckstyleExceptionMessage(ex);
-            assertTrue(message.startsWith("Unable to load "));
-        }
-    }
-
-    @Test
-    public void testUrlIncorrectUrl() throws Exception {
-        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("url", "https://{WrongCharsInURL}");
-
-        try {
-            final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-            verify(checkConfig, getPath("InputImportControl.java"), expected);
-            fail("Test should fail if exception was not thrown");
-        }
-        catch (final CheckstyleException ex) {
-            final String message = getCheckstyleExceptionMessage(ex);
-            assertTrue(message.startsWith("Unable to find: "));
-        }
+        assertArrayEquals("Default acceptable tokens are invalid", expected, actual);
     }
 
     @Test
     public void testResource() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getResourcePath("import-control_one.xml"));
+        checkConfig.addAttribute("file", getResourcePath("InputImportControlOne.xml"));
         final String[] expected = {"5:1: " + getCheckMessage(MSG_DISALLOWED, "java.io.File")};
 
         verify(checkConfig, getPath("InputImportControl.java"), expected);
@@ -295,16 +305,19 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
             verify(checkConfig, getPath("InputImportControl.java"), expected);
             fail("Test should fail if exception was not thrown");
         }
-        catch (final CheckstyleException ex) {
+        catch (CheckstyleException ex) {
             final String message = getCheckstyleExceptionMessage(ex);
-            assertTrue(message.startsWith("Unable to find: "));
+            final String messageStart = "Unable to find: ";
+
+            assertTrue("Invalid message, should start with: " + messageStart,
+                message.startsWith(message));
         }
     }
 
     @Test
     public void testUrlInFileProperty() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getUriString("import-control_one.xml"));
+        checkConfig.addAttribute("file", getUriString("InputImportControlOne.xml"));
         final String[] expected = {"5:1: " + getCheckMessage(MSG_DISALLOWED, "java.io.File")};
 
         verify(checkConfig, getPath("InputImportControl.java"), expected);
@@ -320,16 +333,19 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
             verify(checkConfig, getPath("InputImportControl.java"), expected);
             fail("Test should fail if exception was not thrown");
         }
-        catch (final CheckstyleException ex) {
+        catch (CheckstyleException ex) {
             final String message = getCheckstyleExceptionMessage(ex);
-            assertTrue(message.startsWith("Unable to load "));
+            final String messageStart = "Unable to load ";
+
+            assertTrue("Invalid message, should start with: " + messageStart,
+                message.startsWith(message));
         }
     }
 
     @Test
     public void testCacheWhenFileExternalResourceContentDoesNotChange() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getPath("import-control_one-re.xml"));
+        checkConfig.addAttribute("file", getPath("InputImportControlOneRegExp.xml"));
 
         final Checker checker = createMockCheckerWithCache(checkConfig);
 
@@ -342,24 +358,9 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     }
 
     @Test
-    public void testCacheWhenUrlExternalResourceContentDoesNotChange() throws Exception {
-        final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("url", getUriString("import-control_one.xml"));
-
-        final Checker checker = createMockCheckerWithCache(checkConfig);
-
-        final String pathToEmptyFile = temporaryFolder.newFile("TestFile.java").getPath();
-        final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-
-        verify(checker, pathToEmptyFile, pathToEmptyFile, expected);
-        // One more time to use cache.
-        verify(checker, pathToEmptyFile, pathToEmptyFile, expected);
-    }
-
-    @Test
     public void testPathRegexMatches() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getResourcePath("import-control_one.xml"));
+        checkConfig.addAttribute("file", getResourcePath("InputImportControlOne.xml"));
         checkConfig.addAttribute("path", "^.*[\\\\/]src[\\\\/]test[\\\\/].*$");
         final String[] expected = {"5:1: " + getCheckMessage(MSG_DISALLOWED, "java.io.File")};
 
@@ -369,7 +370,7 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     @Test
     public void testPathRegexMatchesPartially() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getResourcePath("import-control_one.xml"));
+        checkConfig.addAttribute("file", getResourcePath("InputImportControlOne.xml"));
         checkConfig.addAttribute("path", "[\\\\/]InputImportControl\\.java");
         final String[] expected = {"5:1: " + getCheckMessage(MSG_DISALLOWED, "java.io.File")};
 
@@ -379,7 +380,7 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     @Test
     public void testPathRegexDoesntMatch() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getResourcePath("import-control_one.xml"));
+        checkConfig.addAttribute("file", getResourcePath("InputImportControlOne.xml"));
         checkConfig.addAttribute("path", "^.*[\\\\/]src[\\\\/]main[\\\\/].*$");
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
@@ -389,7 +390,7 @@ public class ImportControlCheckTest extends BaseCheckTestSupport {
     @Test
     public void testPathRegexDoesntMatchPartially() throws Exception {
         final DefaultConfiguration checkConfig = createCheckConfig(ImportControlCheck.class);
-        checkConfig.addAttribute("file", getResourcePath("import-control_one.xml"));
+        checkConfig.addAttribute("file", getResourcePath("InputImportControlOne.xml"));
         checkConfig.addAttribute("path", "[\\\\/]NoMatch\\.java");
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 

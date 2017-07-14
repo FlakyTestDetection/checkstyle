@@ -45,19 +45,24 @@ public class TrailingCommentCheckTest extends BaseCheckTestSupport {
 
     @Override
     protected String getPath(String filename) throws IOException {
-        return super.getPath("checks" + File.separator + filename);
+        return super.getPath("checks" + File.separator
+                + "misc" + File.separator
+                + "trailingcomment" + File.separator
+                + filename);
     }
 
     @Test
     public void testGetRequiredTokens() {
         final TrailingCommentCheck checkObj = new TrailingCommentCheck();
-        assertArrayEquals(CommonUtils.EMPTY_INT_ARRAY, checkObj.getRequiredTokens());
+        assertArrayEquals("Required tokens array is not empty",
+                CommonUtils.EMPTY_INT_ARRAY, checkObj.getRequiredTokens());
     }
 
     @Test
     public void testGetAcceptableTokens() {
         final TrailingCommentCheck checkObj = new TrailingCommentCheck();
-        assertArrayEquals(CommonUtils.EMPTY_INT_ARRAY, checkObj.getAcceptableTokens());
+        assertArrayEquals("Acceptable tokens array is not empty",
+                CommonUtils.EMPTY_INT_ARRAY, checkObj.getAcceptableTokens());
     }
 
     @Test
@@ -94,7 +99,8 @@ public class TrailingCommentCheckTest extends BaseCheckTestSupport {
             Assert.fail("IllegalStateException is expected");
         }
         catch (IllegalStateException ex) {
-            assertEquals("visitToken() shouldn't be called.", ex.getMessage());
+            assertEquals("Error message is unexpected",
+                    "visitToken() shouldn't be called.", ex.getMessage());
         }
     }
 }

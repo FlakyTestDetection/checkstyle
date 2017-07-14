@@ -23,18 +23,27 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -44,20 +53,26 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
+import com.google.common.io.Flushables;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import com.puppycrawl.tools.checkstyle.api.Configuration;
 import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ PropertyCacheFile.class, ByteStreams.class, CommonUtils.class })
+@PrepareForTest({ PropertyCacheFile.class, ByteStreams.class,
+        CommonUtils.class, Closeables.class, Flushables.class})
 public class PropertyCacheFileTest {
 
     @Rule
@@ -89,6 +104,61 @@ public class PropertyCacheFileTest {
         assertTrue(cache.isInCache("myFile", 1));
         assertFalse(cache.isInCache("myFile", 2));
         assertFalse(cache.isInCache("myFile1", 1));
+    }
+
+    @Test
+    public void testResetIfFileDoesNotExist() throws IOException {
+        final Configuration config = new DefaultConfiguration("myName");
+        final PropertyCacheFile cache = new PropertyCacheFile(config, "fileDoesNotExist.txt");
+
+        cache.load();
+
+        assertNotNull(cache.get(PropertyCacheFile.CONFIG_HASH_KEY));
+    }
+
+    @Test
+    public void testCloseAndFlushOutputStreamAfterCreatingHashCode() throws IOException {
+        mockStatic(Closeables.class);
+        doNothing().when(Closeables.class);
+        Closeables.close(any(ObjectOutputStream.class), Matchers.eq(false));
+        mockStatic(Flushables.class);
+        doNothing().when(Flushables.class);
+        Flushables.flush(any(ObjectOutputStream.class), Matchers.eq(false));
+
+        final Configuration config = new DefaultConfiguration("myName");
+        final PropertyCacheFile cache = new PropertyCacheFile(config, "fileDoesNotExist.txt");
+        cache.load();
+
+        verifyStatic(times(1));
+
+        Closeables.close(any(ObjectOutputStream.class), Matchers.eq(false));
+        verifyStatic(times(1));
+        Flushables.flush(any(ObjectOutputStream.class), Matchers.eq(false));
+    }
+
+    @Test
+    public void testPopulateDetails() throws IOException {
+        mockStatic(Closeables.class);
+        doNothing().when(Closeables.class);
+        Closeables.closeQuietly(any(FileInputStream.class));
+
+        final Configuration config = new DefaultConfiguration("myName");
+        final PropertyCacheFile cache = new PropertyCacheFile(config,
+                "src/test/resources/com/puppycrawl/tools/checkstyle/cache.tmp");
+        cache.load();
+
+        final String hash = cache.get(PropertyCacheFile.CONFIG_HASH_KEY);
+        assertNotNull(hash);
+        assertNull(cache.get("key"));
+
+        cache.load();
+
+        assertEquals(hash, cache.get(PropertyCacheFile.CONFIG_HASH_KEY));
+        assertEquals("value", cache.get("key"));
+        assertNotNull(cache.get(PropertyCacheFile.CONFIG_HASH_KEY));
+
+        verifyStatic(times(2));
+        Closeables.closeQuietly(any(FileInputStream.class));
     }
 
     @Test
@@ -129,6 +199,35 @@ public class PropertyCacheFileTest {
         assertFalse(cache.isInCache("myFile", 1));
     }
 
+    @Test
+    public void testExternalResourseIsSavedInCache() throws Exception {
+        final Configuration config = new DefaultConfiguration("myName");
+        final String filePath = temporaryFolder.newFile().getPath();
+        final PropertyCacheFile cache = new PropertyCacheFile(config, filePath);
+
+        cache.load();
+
+        final Set<String> resources = new HashSet<>();
+        final String pathToResource =
+                "src/test/resources/com/puppycrawl/tools/checkstyle/externalResourse.tmp";
+        resources.add(pathToResource);
+        cache.putExternalResources(resources);
+
+        final MessageDigest digest = MessageDigest.getInstance("SHA-1");
+        final URI uri = CommonUtils.getUriByFilename(pathToResource);
+        final byte[] input =
+                ByteStreams.toByteArray(new BufferedInputStream(uri.toURL().openStream()));
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(out)) {
+            oos.writeObject(input);
+        }
+        digest.update(out.toByteArray());
+        final String expected = DatatypeConverter.printHexBinary(digest.digest());
+
+        assertEquals("Hashes are not equal", expected,
+                cache.get("module-resource*?:" + pathToResource));
+    }
+
     /**
      * This SuppressWarning("unchecked") required to suppress
      * "Unchecked generics array creation for varargs parameter" during mock
@@ -162,6 +261,28 @@ public class PropertyCacheFileTest {
 
         assertFalse(cache.isInCache(myFile, 1));
         assertFalse(cache.isInCache(resource, 1));
+    }
+
+    @Test
+    public void testFlushAndCloseCacheFileOutputStream() throws IOException {
+        mockStatic(Closeables.class);
+        doNothing().when(Closeables.class);
+        Closeables.close(any(FileOutputStream.class), Matchers.eq(false));
+        mockStatic(Flushables.class);
+        doNothing().when(Flushables.class);
+        Flushables.flush(any(FileOutputStream.class), Matchers.eq(false));
+
+        final Configuration config = new DefaultConfiguration("myName");
+        final PropertyCacheFile cache = new PropertyCacheFile(config,
+            temporaryFolder.newFile().getPath());
+
+        cache.put("CheckedFileName.java", System.currentTimeMillis());
+        cache.persist();
+
+        verifyStatic(times(1));
+        Closeables.close(any(FileOutputStream.class), Matchers.eq(false));
+        verifyStatic(times(1));
+        Flushables.flush(any(FileOutputStream.class), Matchers.eq(false));
     }
 
     @Test
@@ -249,7 +370,8 @@ public class PropertyCacheFileTest {
             nonExistingExternalResources.add(externalResourceFileName);
             cache.putExternalResources(nonExistingExternalResources);
 
-            externalResourceHashes[i] = cache.get(externalResourceFileName);
+            externalResourceHashes[i] = cache.get(PropertyCacheFile.EXTERNAL_RESOURCE_KEY_PREFIX
+                    + externalResourceFileName);
             assertNotNull(externalResourceHashes[i]);
 
             cache.persist();
@@ -301,7 +423,8 @@ public class PropertyCacheFileTest {
             nonExistingExternalResources.add(externalResourceFileName);
             cache.putExternalResources(nonExistingExternalResources);
 
-            externalResourceHashes[i] = cache.get(externalResourceFileName);
+            externalResourceHashes[i] = cache.get(PropertyCacheFile.EXTERNAL_RESOURCE_KEY_PREFIX
+                    + externalResourceFileName);
             assertNotNull(externalResourceHashes[i]);
 
             cache.persist();
@@ -326,7 +449,7 @@ public class PropertyCacheFileTest {
         final PropertyCacheFile cache = new PropertyCacheFile(config, cacheFile.getPath());
         cache.load();
 
-        final String expectedInitialConfigHash = "EEF15651C2D79B29968835FC729E788938CAFE3B";
+        final String expectedInitialConfigHash = "91753B970AFDF9F5F3DFA0D258064841949D3C6B";
         final String actualInitialConfigHash = cache.get(PropertyCacheFile.CONFIG_HASH_KEY);
         assertEquals(expectedInitialConfigHash, actualInitialConfigHash);
 
@@ -343,7 +466,7 @@ public class PropertyCacheFileTest {
             new PropertyCacheFile(config, cacheFile.getPath());
         cacheAfterChangeInConfig.load();
 
-        final String expectedConfigHashAfterChange = "0FFFF89F6636EE8AEB904681F594B0F05E1FF795";
+        final String expectedConfigHashAfterChange = "4CF5EC78955B81D76153ACC2CA6D60CB77FDCB2A";
         final String actualConfigHashAfterChange =
             cacheAfterChangeInConfig.get(PropertyCacheFile.CONFIG_HASH_KEY);
         assertEquals(expectedConfigHashAfterChange, actualConfigHashAfterChange);

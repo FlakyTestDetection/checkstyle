@@ -105,9 +105,32 @@ public class SeparatorWrapCheckTest
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue(ex.getMessage().startsWith(
-                    "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
-                            + "Cannot set property 'option' to 'invalid_option' in module"));
+            final String messageStart = "cannot initialize module "
+                + "com.puppycrawl.tools.checkstyle.TreeWalker - Cannot set property 'option' to "
+                + "'invalid_option' in module";
+            assertTrue("Invalid exception message, should start with: " + messageStart,
+                ex.getMessage().startsWith(messageStart));
         }
     }
+
+    @Test
+    public void testEllipsis() throws Exception {
+        checkConfig.addAttribute("option", "EOL");
+        checkConfig.addAttribute("tokens", "ELLIPSIS");
+        final String[] expected = {
+            "11:13: " + getCheckMessage(MSG_LINE_PREVIOUS, "..."),
+        };
+        verify(checkConfig, getPath("InputSeparatorWrapForEllipsis.java"), expected);
+    }
+
+    @Test
+    public void testArrayDeclarator() throws Exception {
+        checkConfig.addAttribute("option", "EOL");
+        checkConfig.addAttribute("tokens", "ARRAY_DECLARATOR");
+        final String[] expected = {
+            "9:13: " + getCheckMessage(MSG_LINE_PREVIOUS, "["),
+        };
+        verify(checkConfig, getPath("InputSeparatorWrapForArrayDeclarator.java"), expected);
+    }
+
 }

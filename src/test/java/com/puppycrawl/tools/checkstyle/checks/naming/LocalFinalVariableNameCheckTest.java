@@ -46,7 +46,9 @@ public class LocalFinalVariableNameCheckTest
     public void testGetRequiredTokens() {
         final LocalFinalVariableNameCheck checkObj =
             new LocalFinalVariableNameCheck();
-        assertArrayEquals(CommonUtils.EMPTY_INT_ARRAY, checkObj.getRequiredTokens());
+        assertArrayEquals(
+            "LocalFinalVariableNameCheck#getRequiredTockens should return empty array by default",
+            CommonUtils.EMPTY_INT_ARRAY, checkObj.getRequiredTokens());
     }
 
     @Test
@@ -95,7 +97,26 @@ public class LocalFinalVariableNameCheckTest
         final int[] expected = {
             TokenTypes.VARIABLE_DEF,
             TokenTypes.PARAMETER_DEF,
+            TokenTypes.RESOURCE,
         };
-        assertArrayEquals(expected, actual);
+        assertArrayEquals("Default acceptable tokens are invalid", expected, actual);
+    }
+
+    @Test
+    public void testTryWithResources() throws Exception {
+        final DefaultConfiguration checkConfig =
+            createCheckConfig(LocalFinalVariableNameCheck.class);
+        checkConfig.addAttribute("format", "[A-Z]+");
+
+        final String pattern = "[A-Z]+";
+
+        final String[] expected = {
+            "23:30: " + getCheckMessage(MSG_INVALID_PATTERN, "br", pattern),
+            "33:29: " + getCheckMessage(MSG_INVALID_PATTERN, "br", pattern),
+            "53:22: " + getCheckMessage(MSG_INVALID_PATTERN, "zf", pattern),
+            "71:30: " + getCheckMessage(MSG_INVALID_PATTERN, "fis8859_1", pattern),
+            "73:32: " + getCheckMessage(MSG_INVALID_PATTERN, "isrutf8", pattern),
+        };
+        verify(checkConfig, getPath("InputLocalFinalVariableNameTryResources.java"), expected);
     }
 }

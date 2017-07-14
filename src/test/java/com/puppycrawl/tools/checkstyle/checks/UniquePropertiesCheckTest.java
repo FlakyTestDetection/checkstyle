@@ -37,11 +37,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.puppycrawl.tools.checkstyle.BaseFileSetCheckTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
+import com.puppycrawl.tools.checkstyle.api.FileText;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 
 /**
@@ -58,7 +60,10 @@ public class UniquePropertiesCheckTest extends BaseFileSetCheckTestSupport {
 
     @Override
     protected String getPath(String filename) throws IOException {
-        return super.getPath("checks" + File.separator + filename);
+        return super.getPath("checks" + File.separator
+                + "misc" + File.separator
+                + "uniqueproperties" + File.separator
+                + filename);
     }
 
     /* Additional test for jacoco, since valueOf()
@@ -68,7 +73,7 @@ public class UniquePropertiesCheckTest extends BaseFileSetCheckTestSupport {
     @Test
     public void testLineSeparatorOptionValueOf() {
         final LineSeparatorOption option = LineSeparatorOption.valueOf("CR");
-        assertEquals(LineSeparatorOption.CR, option);
+        assertEquals("Invalid valueOf result", LineSeparatorOption.CR, option);
     }
 
     /**
@@ -88,19 +93,24 @@ public class UniquePropertiesCheckTest extends BaseFileSetCheckTestSupport {
     }
 
     /**
-     * Tests the {@link UniquePropertiesCheck#getLineNumber(List, String)}
+     * Tests the {@link UniquePropertiesCheck#getLineNumber(FileText, String)}
      * method return value.
      */
     @Test
-    public void testNotFoundKey() {
+    public void testNotFoundKey() throws Exception {
         final List<String> testStrings = new ArrayList<>(3);
+        final Method getLineNumber = UniquePropertiesCheck.class.getDeclaredMethod(
+            "getLineNumber", FileText.class, String.class);
+        Assert.assertNotNull(getLineNumber);
+        getLineNumber.setAccessible(true);
         testStrings.add("");
         testStrings.add("0 = 0");
         testStrings.add("445");
-        final int stringNumber =
-                UniquePropertiesCheck.getLineNumber(testStrings,
-                        "some key");
-        assertEquals(0, stringNumber);
+        final FileText fileText = new FileText(new File("some.properties"), testStrings);
+        final Object lineNumber = getLineNumber.invoke(UniquePropertiesCheck.class,
+                fileText, "some key");
+        Assert.assertNotNull(lineNumber);
+        assertEquals("Invalid line number", 0, lineNumber);
     }
 
     /**
@@ -113,8 +123,9 @@ public class UniquePropertiesCheckTest extends BaseFileSetCheckTestSupport {
         final String fileName =
                 getPath("InputUniquePropertiesCheckNotExisting.properties");
         final File file = new File(fileName);
+        final FileText fileText = new FileText(file, Collections.emptyList());
         final SortedSet<LocalizedMessage> messages =
-                check.process(file, Collections.emptyList());
+                check.process(file, fileText);
         assertEquals("Wrong messages count: " + messages.size(),
                 1, messages.size());
         final LocalizedMessage message = messages.iterator().next();
@@ -140,10 +151,11 @@ public class UniquePropertiesCheckTest extends BaseFileSetCheckTestSupport {
         final Object result = method.invoke(uniqueProperties, 1, "value");
         final Map<Object, Object> table = new HashMap<>();
         final Object expected = table.put(1, "value");
-        assertEquals(expected, result);
+        assertEquals("Invalid result of put method", expected, result);
+
         final Object result2 = method.invoke(uniqueProperties, 1, "value");
         final Object expected2 = table.put(1, "value");
-        assertEquals(expected2, result2);
+        assertEquals("Value should be substituted", expected2, result2);
     }
 
     /**

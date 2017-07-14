@@ -26,7 +26,6 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -120,6 +119,7 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
     }
 
     /**
+     * Sets classLoader to load class.
      * @param classLoader class loader to resolve classes with.
      */
     public void setClassLoader(ClassLoader classLoader) {
@@ -138,7 +138,6 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
     public void finishLocalSetup() {
         final DefaultContext checkContext = new DefaultContext();
         checkContext.add("classLoader", classLoader);
-        checkContext.add("messages", getMessageCollector());
         checkContext.add("severity", getSeverity());
         checkContext.add("tabWidth", String.valueOf(tabWidth));
 
@@ -165,23 +164,26 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
     }
 
     @Override
-    protected void processFiltered(File file, List<String> lines) throws CheckstyleException {
+    protected void processFiltered(File file, FileText fileText) throws CheckstyleException {
         // check if already checked and passed the file
         if (CommonUtils.matchesFileExtension(file, getFileExtensions())) {
             final String msg = "%s occurred during the analysis of file %s.";
             final String fileName = file.getPath();
             try {
-                final FileText text = FileText.fromLines(file, lines);
-                final FileContents contents = new FileContents(text);
-                final DetailAST rootAST = parse(contents);
+                if (!ordinaryChecks.isEmpty()
+                        || !commentChecks.isEmpty()) {
+                    final FileContents contents = new FileContents(fileText);
+                    final DetailAST rootAST = parse(contents);
 
-                getMessageCollector().reset();
+                    if (!ordinaryChecks.isEmpty()) {
+                        walk(rootAST, contents, AstState.ORDINARY);
+                    }
+                    if (!commentChecks.isEmpty()) {
+                        final DetailAST astWithComments = appendHiddenCommentNodes(rootAST);
 
-                walk(rootAST, contents, AstState.ORDINARY);
-
-                final DetailAST astWithComments = appendHiddenCommentNodes(rootAST);
-
-                walk(astWithComments, contents, AstState.WITH_COMMENTS);
+                        walk(astWithComments, contents, AstState.WITH_COMMENTS);
+                    }
+                }
             }
             catch (final TokenStreamRecognitionException tre) {
                 final String exceptionMsg = String.format(Locale.ROOT, msg,
@@ -326,6 +328,7 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
 
         for (AbstractCheck check : checks) {
             check.setFileContents(contents);
+            check.clearMessages();
             check.beginTree(rootAST);
         }
     }
@@ -347,6 +350,7 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
 
         for (AbstractCheck check : checks) {
             check.finishTree(rootAST);
+            addMessages(check.getMessages());
         }
     }
 
@@ -382,7 +386,7 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
     }
 
     /**
-     * Method returns list of checks
+     * Method returns list of checks.
      *
      * @param ast
      *            the node to notify for
@@ -624,7 +628,6 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
         slComment.setLineNo(token.getLine());
 
         final DetailAST slCommentContent = new DetailAST();
-        slCommentContent.initialize(token);
         slCommentContent.setType(TokenTypes.COMMENT_CONTENT);
 
         // column counting begins from 0
@@ -652,7 +655,6 @@ public final class TreeWalker extends AbstractFileSetCheck implements ExternalRe
         blockComment.setLineNo(token.getLine());
 
         final DetailAST blockCommentContent = new DetailAST();
-        blockCommentContent.initialize(token);
         blockCommentContent.setType(TokenTypes.COMMENT_CONTENT);
 
         // column counting begins from 0

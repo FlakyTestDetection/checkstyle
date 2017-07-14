@@ -213,9 +213,9 @@
                   <td/>
               </tr>
               <tr>
-                  <td><a href="https://wiki.jenkins-ci.org/display/JENKINS/Checkstyle+Plugin">Jenkins Checkstyle plug-in</a></td>
+                  <td><a href="https://wiki.jenkins.io/display/JENKINS/Checkstyle+Plugin">Jenkins Checkstyle plug-in</a></td>
                   <td/>
-                  <td><a href="https://wiki.jenkins-ci.org/display/JENKINS/Checkstyle+Plugin">Jenkins Checkstyle plug-in Home Page</a></td>
+                  <td><a href="https://wiki.jenkins.io/display/JENKINS/Checkstyle+Plugin">Jenkins Checkstyle plug-in Home Page</a></td>
                   <td>This plug-in is supported by the Static Analysis Collector plug-in that collects different analysis results and shows the results in aggregated trend graphs.</td>
               </tr>
               <tr>
@@ -245,15 +245,15 @@
                   <td><a href="https://netbeans.org/">NetBeans</a></td>
                   <td/>
                   <td>
-                      <a href="https://java.net/projects/sqe/">Software Quality Environment (SQE)</a>
+                      <a href="http://sqe-team.github.io">Software Quality Environment (SQE)</a>
                   </td>
                   <td/>
               </tr>
               <tr>
-                  <td><a href="https://sonarqube.com/about">SonarQube</a></td>
+                  <td><a href="https://www.sonarqube.org/">SonarQube</a></td>
                   <td>Freddy Mallet (initial author)</td>
-                  <td><a href="https://sonarqube.com/about">SonarQube Home Page</a></td>
-                  <td><a href="https://sonarqube.com/projects">Demo site</a></td>
+                  <td><a href="https://github.com/checkstyle/sonar-checkstyle">Checkstyle SonarQube repository</a></td>
+                  <td><a href="https://sonarcloud.io/projects">Demo site of SonarQube</a></td>
               </tr>
               <tr>
                   <td><a href="http://www.jedit.org/">jEdit</a></td>
@@ -272,7 +272,7 @@
                   <td><a href="http://www.jetbrains.com/idea/">IntelliJ IDEA</a></td>
                   <td>Jakub Slawinski</td>
                   <td>
-                      <a href="http://qaplug.com/">QAPlug</a>
+                      <a href="https://plugins.jetbrains.com/plugin/4594-qaplug">QAPlug</a>
                   </td>
                   <td>Provides quality assurance features.</td>
               </tr>

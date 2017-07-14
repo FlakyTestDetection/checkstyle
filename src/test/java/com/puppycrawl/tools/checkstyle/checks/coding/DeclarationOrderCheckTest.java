@@ -23,9 +23,11 @@ import static com.puppycrawl.tools.checkstyle.checks.coding.DeclarationOrderChec
 import static com.puppycrawl.tools.checkstyle.checks.coding.DeclarationOrderCheck.MSG_CONSTRUCTOR;
 import static com.puppycrawl.tools.checkstyle.checks.coding.DeclarationOrderCheck.MSG_INSTANCE;
 import static com.puppycrawl.tools.checkstyle.checks.coding.DeclarationOrderCheck.MSG_STATIC;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.SortedSet;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,6 +35,7 @@ import org.junit.Test;
 import com.puppycrawl.tools.checkstyle.BaseCheckTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
+import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 public class DeclarationOrderCheckTest
@@ -146,8 +149,16 @@ public class DeclarationOrderCheckTest
         method.setNextSibling(ctor);
 
         final DeclarationOrderCheck check = new DeclarationOrderCheck();
+
         check.visitToken(method);
+        final SortedSet<LocalizedMessage> messages1 = check.getMessages();
+
+        assertEquals("No exception messages expected", 0, messages1.size());
+
         check.visitToken(ctor);
+        final SortedSet<LocalizedMessage> messages2 = check.getMessages();
+
+        assertEquals("No exception messages expected", 0, messages2.size());
     }
 
     @Test
@@ -159,7 +170,11 @@ public class DeclarationOrderCheckTest
         parent.setFirstChild(array);
 
         final DeclarationOrderCheck check = new DeclarationOrderCheck();
+
         check.visitToken(array);
+        final SortedSet<LocalizedMessage> messages = check.getMessages();
+
+        assertEquals("No exception messages expected", 0, messages.size());
     }
 
     @Test

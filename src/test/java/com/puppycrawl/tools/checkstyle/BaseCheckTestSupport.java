@@ -49,6 +49,10 @@ import com.puppycrawl.tools.checkstyle.api.Configuration;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
 
 public class BaseCheckTestSupport {
+    protected static final String LF_REGEX = "\\\\n";
+
+    protected static final String CLRF_REGEX = "\\\\r\\\\n";
+
     protected final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
     protected static DefaultConfiguration createCheckConfig(Class<?> clazz) {
@@ -118,20 +122,6 @@ public class BaseCheckTestSupport {
 
     /**
      * Returns canonical path for the file with the given file name.
-     * The path is formed base on the sources location.
-     * This implementation uses 'src/test/java/com/puppycrawl/tools/checkstyle/'
-     * as a src location.
-     * @param filename file name.
-     * @return canonical path for the file with the given file name.
-     * @throws IOException if I/O exception occurs while forming the path.
-     */
-    protected static String getSrcPath(String filename) throws IOException {
-        return new File("src/test/java/com/puppycrawl/tools/checkstyle/" + filename)
-                .getCanonicalPath();
-    }
-
-    /**
-     * Returns canonical path for the file with the given file name.
      * The path is formed base on the non-compilable resources location.
      * This implementation uses 'src/test/resources-noncompilable/com/puppycrawl/tools/checkstyle/'
      * as a non-compilable resource location.
@@ -165,15 +155,63 @@ public class BaseCheckTestSupport {
      * @throws Exception if exception occurs during verification.
      */
     protected static void verifyAst(String expectedTextPrintFileName, String actualJavaFileName,
-            boolean withComments) throws Exception {
-        final String expectedContents = new String(Files.readAllBytes(
-            Paths.get(expectedTextPrintFileName)), StandardCharsets.UTF_8)
-            .replaceAll("\\\\r\\\\n", "\\\\n");
+                                    boolean withComments) throws Exception {
+        final String expectedContents = readFile(expectedTextPrintFileName);
+
         final String actualContents = AstTreeStringPrinter.printFileAst(
-                new File(actualJavaFileName), withComments).replaceAll("\\\\r\\\\n", "\\\\n");
+                new File(actualJavaFileName), withComments).replaceAll(CLRF_REGEX, LF_REGEX);
 
         assertEquals("Generated AST from Java file should match pre-defined AST", expectedContents,
                 actualContents);
+    }
+
+    /**
+     * Verifies the javadoc tree generated for the supplied javadoc file against the expected tree
+     * in the supplied text file.
+     * @param expectedTextPrintFilename name of the text file having the expected tree.
+     * @param actualJavadocFilename name of the file containing the javadoc.
+     * @throws Exception if exception occurs during verification.
+     */
+    protected static void verifyJavadocTree(String expectedTextPrintFilename,
+                                            String actualJavadocFilename) throws Exception {
+
+        final String expectedContents = readFile(expectedTextPrintFilename);
+
+        final String actualContents = DetailNodeTreeStringPrinter.printFileAst(
+                new File(actualJavadocFilename)).replaceAll(CLRF_REGEX, LF_REGEX);
+
+        assertEquals("Generated tree from the javadoc file should match the pre-defined tree",
+                expectedContents, actualContents);
+    }
+
+    /**
+     * Verifies the java and javadoc AST generated for the supplied java file against
+     * the expected AST in supplied text file.
+     * @param expectedTextPrintFilename name of the file having the expected ast.
+     * @param actualJavaFilename name of the java file.
+     * @throws Exception if exception occurs during verification.
+     */
+    protected static void verifyJavaAndJavadocAst(String expectedTextPrintFilename,
+                                                  String actualJavaFilename) throws Exception {
+
+        final String expectedContents = readFile(expectedTextPrintFilename);
+
+        final String actualContents = AstTreeStringPrinter.printJavaAndJavadocTree(
+                new File(actualJavaFilename)).replaceAll(CLRF_REGEX, LF_REGEX);
+
+        assertEquals("Generated AST from the java file should match the pre-defined AST",
+                expectedContents, actualContents);
+    }
+
+    /** Reads the contents of a file.
+     * @param filename the name of the file whose contents are to be read
+     * @return contents of the file with all {@code \r\n} replaced by {@code \n}
+     * @throws IOException if I/O exception occurs while reading
+     */
+    protected static String readFile(String filename) throws IOException {
+        return new String(Files.readAllBytes(
+                Paths.get(filename)), StandardCharsets.UTF_8)
+                .replaceAll(CLRF_REGEX, LF_REGEX);
     }
 
     /**

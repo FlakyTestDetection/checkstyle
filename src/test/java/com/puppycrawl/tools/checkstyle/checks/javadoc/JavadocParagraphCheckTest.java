@@ -47,21 +47,23 @@ public class JavadocParagraphCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
         return super.getPath("checks" + File.separator
-                + "javadoc" + File.separator + filename);
+                + "javadoc" + File.separator
+                + "javadocparagraph" + File.separator + filename);
     }
 
     @Test
     public void testGetRequiredTokens() {
         final JavadocParagraphCheck checkObj = new JavadocParagraphCheck();
         final int[] expected = {TokenTypes.BLOCK_COMMENT_BEGIN};
-        assertArrayEquals(expected, checkObj.getRequiredTokens());
+        assertArrayEquals("Default required tokens are invalid",
+            expected, checkObj.getRequiredTokens());
     }
 
     @Test
     public void testCorrect() throws Exception {
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
-        verify(checkConfig, getPath("InputCorrectJavaDocParagraph.java"), expected);
+        verify(checkConfig, getPath("InputJavaDocParagraphCorrect.java"), expected);
     }
 
     @Test
@@ -104,7 +106,7 @@ public class JavadocParagraphCheckTest extends BaseCheckTestSupport {
             "81: " + getCheckMessage(MSG_TAG_AFTER),
             "82: " + getCheckMessage(MSG_TAG_AFTER),
         };
-        verify(checkConfig, getPath("InputIncorrectJavaDocParagraph.java"), expected);
+        verify(checkConfig, getPath("InputJavaDocParagraphIncorrect.java"), expected);
     }
 
     @Test
@@ -131,6 +133,6 @@ public class JavadocParagraphCheckTest extends BaseCheckTestSupport {
             "81: " + getCheckMessage(MSG_TAG_AFTER),
             "82: " + getCheckMessage(MSG_TAG_AFTER),
         };
-        verify(checkConfig, getPath("InputIncorrectJavaDocParagraph.java"), expected);
+        verify(checkConfig, getPath("InputJavaDocParagraphIncorrect.java"), expected);
     }
 }

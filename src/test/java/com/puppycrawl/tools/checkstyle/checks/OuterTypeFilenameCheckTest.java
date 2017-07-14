@@ -35,12 +35,18 @@ import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 public class OuterTypeFilenameCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
-        return super.getPath("checks" + File.separator + filename);
+        return super.getPath("checks" + File.separator
+                + "misc" + File.separator
+                + "outertypefilename" + File.separator
+                + filename);
     }
 
     @Override
     protected String getNonCompilablePath(String filename) throws IOException {
-        return super.getNonCompilablePath("checks" + File.separator + filename);
+        return super.getNonCompilablePath("checks" + File.separator
+                + "misc" + File.separator
+                + "outertypefilename" + File.separator
+                + filename);
     }
 
     @Test
@@ -52,7 +58,8 @@ public class OuterTypeFilenameCheckTest extends BaseCheckTestSupport {
             TokenTypes.ENUM_DEF,
             TokenTypes.ANNOTATION_DEF,
         };
-        assertArrayEquals(expected, checkObj.getRequiredTokens());
+        assertArrayEquals("Required tokens array differs from expected",
+                expected, checkObj.getRequiredTokens());
     }
 
     @Test
@@ -60,7 +67,7 @@ public class OuterTypeFilenameCheckTest extends BaseCheckTestSupport {
         final DefaultConfiguration checkConfig =
             createCheckConfig(OuterTypeFilenameCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputIllegalTokens.java"), expected);
+        verify(checkConfig, getPath("InputOuterTypeFilenameIllegalTokens.java"), expected);
     }
 
     @Test
@@ -68,7 +75,7 @@ public class OuterTypeFilenameCheckTest extends BaseCheckTestSupport {
         final DefaultConfiguration checkConfig =
             createCheckConfig(OuterTypeFilenameCheck.class);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("Input15Extensions.java"), expected);
+        verify(checkConfig, getPath("InputOuterTypeFilename15Extensions.java"), expected);
     }
 
     @Test
@@ -81,7 +88,8 @@ public class OuterTypeFilenameCheckTest extends BaseCheckTestSupport {
             TokenTypes.ENUM_DEF,
             TokenTypes.ANNOTATION_DEF,
         };
-        assertArrayEquals(expected, actual);
+        assertArrayEquals("Acceptable tokens array differs from expected",
+                expected, actual);
     }
 
     @Test

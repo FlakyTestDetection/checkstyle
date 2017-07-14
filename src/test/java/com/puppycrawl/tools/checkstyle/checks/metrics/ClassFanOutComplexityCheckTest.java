@@ -39,7 +39,7 @@ public class ClassFanOutComplexityCheckTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
         return super.getPath("checks" + File.separator
-                + "metrics" + File.separator + filename);
+                + "metrics" + File.separator + "classfanoutcomplexity" + File.separator + filename);
     }
 
     @Test
@@ -54,7 +54,7 @@ public class ClassFanOutComplexityCheckTest extends BaseCheckTestSupport {
             "38:1: " + getCheckMessage(MSG_KEY, 1, 0),
         };
 
-        verify(checkConfig, getPath("InputClassCoupling.java"), expected);
+        verify(checkConfig, getPath("InputClassFanOutComplexity.java"), expected);
     }
 
     @Test
@@ -107,12 +107,15 @@ public class ClassFanOutComplexityCheckTest extends BaseCheckTestSupport {
             fail("exception expected");
         }
         catch (CheckstyleException ex) {
-            assertTrue(ex.getMessage().startsWith(
+            final String messageStart =
                 "cannot initialize module com.puppycrawl.tools.checkstyle.TreeWalker - "
                     + "Cannot set property 'excludedPackages' to "
                     + "'com.puppycrawl.tools.checkstyle.checks.metrics.inputs.a.' in module "
                     + "com.puppycrawl.tools.checkstyle.checks.metrics."
-                    + "ClassFanOutComplexityCheck"));
+                    + "ClassFanOutComplexityCheck";
+
+            assertTrue("Invalid exception message, should start with: " + messageStart,
+                ex.getMessage().startsWith(messageStart));
         }
     }
 
@@ -142,7 +145,7 @@ public class ClassFanOutComplexityCheckTest extends BaseCheckTestSupport {
 
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
 
-        verify(checkConfig, getPath("Input15Extensions.java"), expected);
+        verify(checkConfig, getPath("InputClassFanOutComplexity15Extensions.java"), expected);
     }
 
     @Test
@@ -152,7 +155,7 @@ public class ClassFanOutComplexityCheckTest extends BaseCheckTestSupport {
 
         createChecker(checkConfig);
         final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
-        verify(checkConfig, getPath("InputClassCoupling.java"), expected);
+        verify(checkConfig, getPath("InputClassFanOutComplexity.java"), expected);
     }
 
     @Test
@@ -188,7 +191,7 @@ public class ClassFanOutComplexityCheckTest extends BaseCheckTestSupport {
             "38:1: " + getCheckMessage(MSG_KEY, 1, 0),
         };
 
-        verify(checkConfig, getPath("InputClassCoupling.java"), expected);
+        verify(checkConfig, getPath("InputClassFanOutComplexity.java"), expected);
     }
 
     @Test
@@ -204,6 +207,6 @@ public class ClassFanOutComplexityCheckTest extends BaseCheckTestSupport {
             "38:1: " + getCheckMessage(MSG_KEY, 1, 0),
         };
 
-        verify(checkConfig, getPath("InputClassCoupling.java"), expected);
+        verify(checkConfig, getPath("InputClassFanOutComplexity.java"), expected);
     }
 }

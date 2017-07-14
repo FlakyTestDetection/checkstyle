@@ -253,10 +253,28 @@ public class SuppressWithNearbyCommentFilterTest
         }
         catch (CheckstyleException ex) {
             final IllegalArgumentException cause = (IllegalArgumentException) ex.getCause();
-            assertEquals("unable to parse influence"
-                            + " from 'SUPPRESS CHECKSTYLE MemberNameCheck' using a",
-                    cause.getMessage());
+            assertEquals("Invalid exception message", "unable to parse influence"
+                + " from 'SUPPRESS CHECKSTYLE MemberNameCheck' using a", cause.getMessage());
         }
+    }
+
+    @Test
+    public void testInfluenceFormat() throws Exception {
+        final DefaultConfiguration filterConfig =
+                createFilterConfig(SuppressWithNearbyCommentFilter.class);
+        filterConfig.addAttribute("influenceFormat", "1");
+
+        final String[] suppressed = {
+            "14:17: Name 'A1' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+            "15:17: Name 'A2' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+            "16:59: Name 'A3' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+            "18:17: Name 'B1' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+            "19:17: Name 'B2' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+            "20:59: Name 'B3' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+            "80:59: Name 'A2' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+            "81:17: Name 'A1' must match pattern '^[a-z][a-zA-Z0-9]*$'.",
+        };
+        verifySuppressed(filterConfig, suppressed);
     }
 
     @Test
@@ -271,8 +289,8 @@ public class SuppressWithNearbyCommentFilterTest
         }
         catch (CheckstyleException ex) {
             final IllegalArgumentException cause = (IllegalArgumentException) ex.getCause();
-            assertEquals("unable to parse expanded comment a[l",
-                    cause.getMessage());
+            assertEquals("Invalid exception message",
+                "unable to parse expanded comment a[l", cause.getMessage());
         }
     }
 
@@ -288,7 +306,8 @@ public class SuppressWithNearbyCommentFilterTest
         final SuppressWithNearbyCommentFilter.Tag tag = new SuppressWithNearbyCommentFilter.Tag(
                 "text", 7, new SuppressWithNearbyCommentFilter()
         );
-        assertEquals("Tag[lines=[7 to 7]; text='text']", tag.toString());
+        assertEquals("Invalid toString result",
+            "Tag[lines=[7 to 7]; text='text']", tag.toString());
     }
 
     @Test

@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -72,7 +73,7 @@ import org.junit.Test;
 public class CommitValidationTest {
 
     private static final List<String> USERS_EXCLUDED_FROM_VALIDATION =
-            Collections.singletonList("Roman Ivanov");
+            Arrays.asList("Roman Ivanov", "rnveach");
 
     private static final String ISSUE_COMMIT_MESSAGE_REGEX_PATTERN = "^Issue #\\d+: .*$";
     private static final String PR_COMMIT_MESSAGE_REGEX_PATTERN = "^Pull #\\d+: .*$";
@@ -139,11 +140,12 @@ public class CommitValidationTest {
     @Test
     public void testCommitMessageHasProperStructure() {
         for (RevCommit commit : filterValidCommits(lastCommits)) {
-            final String commitId = commit.getId().getName();
             final String commitMessage = commit.getFullMessage();
             final int error = validateCommitMessage(commitMessage);
 
             if (error != 0) {
+                final String commitId = commit.getId().getName();
+
                 fail(getInvalidCommitMessageFormattingError(commitId, commitMessage) + error);
             }
         }
@@ -234,7 +236,7 @@ public class CommitValidationTest {
                     new RevCommitsPair(new OmitMergeCommitsIterator(first),
                             new OmitMergeCommitsIterator(second));
         }
-        catch (GitAPIException | IOException ex) {
+        catch (GitAPIException | IOException ignored) {
             revCommitIteratorPair = new RevCommitsPair();
         }
 

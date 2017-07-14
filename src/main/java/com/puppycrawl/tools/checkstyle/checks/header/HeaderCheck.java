@@ -21,7 +21,8 @@ package com.puppycrawl.tools.checkstyle.checks.header;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
+
+import com.puppycrawl.tools.checkstyle.api.FileText;
 
 /**
  * Checks the header of the source against a fixed header file.
@@ -52,6 +53,7 @@ public class HeaderCheck extends AbstractHeaderCheck {
     private int[] ignoreLines = EMPTY_INT_ARRAY;
 
     /**
+     * Returns true if lineNo is header lines or false.
      * @param lineNo a line number
      * @return if {@code lineNo} is one of the ignored header lines.
      */
@@ -87,13 +89,13 @@ public class HeaderCheck extends AbstractHeaderCheck {
     }
 
     @Override
-    protected void processFiltered(File file, List<String> lines) {
-        if (getHeaderLines().size() > lines.size()) {
+    protected void processFiltered(File file, FileText fileText) {
+        if (getHeaderLines().size() > fileText.size()) {
             log(1, MSG_MISSING);
         }
         else {
             for (int i = 0; i < getHeaderLines().size(); i++) {
-                if (!isMatch(i, lines.get(i))) {
+                if (!isMatch(i, fileText.get(i))) {
                     log(i + 1, MSG_MISMATCH, getHeaderLines().get(i));
                     break;
                 }

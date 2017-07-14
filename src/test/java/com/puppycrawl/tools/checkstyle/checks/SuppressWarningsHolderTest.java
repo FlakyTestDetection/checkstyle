@@ -56,19 +56,26 @@ import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
     @Override
     protected String getPath(String filename) throws IOException {
-        return super.getPath("checks" + File.separator + filename);
+        return super.getPath("checks" + File.separator
+                + "misc" + File.separator
+                + "suppresswarnings" + File.separator
+                + filename);
     }
 
     @Override
     protected String getNonCompilablePath(String filename) throws IOException {
-        return super.getNonCompilablePath("checks" + File.separator + filename);
+        return super.getNonCompilablePath("checks" + File.separator
+                + "misc" + File.separator
+                + "suppresswarnings" + File.separator
+                + filename);
     }
 
     @Test
     public void testGetRequiredTokens() {
         final SuppressWarningsHolder checkObj = new SuppressWarningsHolder();
         final int[] expected = {TokenTypes.ANNOTATION};
-        assertArrayEquals(expected, checkObj.getRequiredTokens());
+        assertArrayEquals("Required token array differs from expected",
+                expected, checkObj.getRequiredTokens());
     }
 
     @Test
@@ -91,21 +98,26 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
 
     @Test
     public void testGetDefaultAlias() {
-        assertEquals("somename", SuppressWarningsHolder.getDefaultAlias("SomeName"));
-        assertEquals("somename", SuppressWarningsHolder.getDefaultAlias("SomeNameCheck"));
+        assertEquals("Diffault alias differs from expected",
+                "somename", SuppressWarningsHolder.getDefaultAlias("SomeName"));
+        assertEquals("Diffault alias differs from expected",
+                "somename", SuppressWarningsHolder.getDefaultAlias("SomeNameCheck"));
     }
 
     @Test
     public void testSetAliasListEmpty() {
         final SuppressWarningsHolder holder = new SuppressWarningsHolder();
         holder.setAliasList("");
+        assertEquals("Empty alias list should not be set", "",
+            SuppressWarningsHolder.getAlias(""));
     }
 
     @Test
     public void testSetAliasListCorrect() {
         final SuppressWarningsHolder holder = new SuppressWarningsHolder();
         holder.setAliasList("alias=value");
-        assertEquals("value", SuppressWarningsHolder.getAlias("alias"));
+        assertEquals("Alias differs from expected",
+                "value", SuppressWarningsHolder.getAlias("alias"));
     }
 
     @Test
@@ -117,7 +129,8 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
             fail("Exception expected");
         }
         catch (IllegalArgumentException ex) {
-            assertEquals("'=' expected in alias list item: SomeAlias", ex.getMessage());
+            assertEquals("Error message is unexpected",
+                    "'=' expected in alias list item: SomeAlias", ex.getMessage());
         }
 
     }
@@ -148,7 +161,7 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
             new LocalizedMessage(100, 10, null, null, null, "id", MemberNameCheck.class, "message");
         final AuditEvent event = new AuditEvent(source, "fileName", message);
 
-        assertFalse(SuppressWarningsHolder.isSuppressed(event));
+        assertFalse("Event is not suppressed", SuppressWarningsHolder.isSuppressed(event));
     }
 
     @Test
@@ -177,19 +190,22 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
             new LocalizedMessage(100, 10, null, null, null, "id", MemberNameCheck.class, "msg");
         final AuditEvent firstEventForTest =
             new AuditEvent(source, "fileName", firstMessageForTest);
-        assertFalse(SuppressWarningsHolder.isSuppressed(firstEventForTest));
+        assertFalse("Event is suppressed",
+                SuppressWarningsHolder.isSuppressed(firstEventForTest));
 
         final LocalizedMessage secondMessageForTest =
             new LocalizedMessage(100, 150, null, null, null, "id", MemberNameCheck.class, "msg");
         final AuditEvent secondEventForTest =
             new AuditEvent(source, "fileName", secondMessageForTest);
-        assertTrue(SuppressWarningsHolder.isSuppressed(secondEventForTest));
+        assertTrue("Event is not suppressed",
+                SuppressWarningsHolder.isSuppressed(secondEventForTest));
 
         final LocalizedMessage thirdMessageForTest =
             new LocalizedMessage(200, 1, null, null, null, "id", MemberNameCheck.class, "msg");
         final AuditEvent thirdEventForTest =
             new AuditEvent(source, "fileName", thirdMessageForTest);
-        assertTrue(SuppressWarningsHolder.isSuppressed(thirdEventForTest));
+        assertTrue("Event is not suppressed",
+                SuppressWarningsHolder.isSuppressed(thirdEventForTest));
     }
 
     @Test
@@ -237,8 +253,10 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
             fail("Exception expected");
         }
         catch (InvocationTargetException ex) {
-            assertTrue(ex.getCause() instanceof IllegalArgumentException);
-            assertEquals("Unexpected AST: Method Def[0x0]", ex.getCause().getMessage());
+            assertTrue("Error type is unexpected",
+                    ex.getCause() instanceof IllegalArgumentException);
+            assertEquals("Error message is unexpected",
+                    "Unexpected AST: Method Def[0x0]", ex.getCause().getMessage());
         }
     }
 
@@ -260,8 +278,10 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
             fail("Exception expected");
         }
         catch (InvocationTargetException ex) {
-            assertTrue(ex.getCause() instanceof IllegalArgumentException);
-            assertEquals("Expression or annotation array"
+            assertTrue("Error type is unexpected",
+                    ex.getCause() instanceof IllegalArgumentException);
+            assertEquals("Error message is unexpected",
+                    "Expression or annotation array"
                     + " initializer AST expected: Method Def[0x0]", ex.getCause().getMessage());
         }
     }
@@ -289,8 +309,10 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
             fail("Exception expected");
         }
         catch (InvocationTargetException ex) {
-            assertTrue(ex.getCause() instanceof IllegalArgumentException);
-            assertEquals("Unexpected container AST: Parent ast[0x0]", ex.getCause().getMessage());
+            assertTrue("Error type is unexpected",
+                    ex.getCause() instanceof IllegalArgumentException);
+            assertEquals("Error message is unexpected",
+                    "Unexpected container AST: Parent ast[0x0]", ex.getCause().getMessage());
         }
     }
 
@@ -305,7 +327,8 @@ public class SuppressWarningsHolderTest extends BaseCheckTestSupport {
             fail("Exception expected");
         }
         catch (IllegalArgumentException ex) {
-            assertEquals("Identifier AST expected, but get null.", ex.getMessage());
+            assertEquals("Error message is unexpected",
+                    "Identifier AST expected, but get null.", ex.getMessage());
         }
 
     }

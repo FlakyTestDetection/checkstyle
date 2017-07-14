@@ -107,6 +107,16 @@ public class SingleSpaceSeparatorCheck extends AbstractCheck {
         return CommonUtils.EMPTY_INT_ARRAY;
     }
 
+    @Override
+    public int[] getAcceptableTokens() {
+        return getDefaultTokens();
+    }
+
+    @Override
+    public int[] getRequiredTokens() {
+        return getDefaultTokens();
+    }
+
     // -@cs[SimpleAccessorNameNotation] Overrides method from base class.
     // Issue: https://github.com/sevntu-checkstyle/sevntu.checkstyle/issues/166
     @Override
@@ -229,7 +239,7 @@ public class SingleSpaceSeparatorCheck extends AbstractCheck {
      *         text on the {@code line}.
      */
     private static boolean isFirstInLine(String line, int columnNo) {
-        return line.substring(0, columnNo + 1).trim().isEmpty();
+        return CommonUtils.isBlank(line.substring(0, columnNo + 1));
     }
 
     /**

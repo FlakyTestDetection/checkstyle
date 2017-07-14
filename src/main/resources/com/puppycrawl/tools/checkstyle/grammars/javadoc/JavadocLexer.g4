@@ -37,8 +37,9 @@ import java.util.*;
 
 }
 
-LEADING_ASTERISK : ( (' '|'\t') {_tokenStartCharPositionInLine == 0}? ) (' '|'\t')* '*'
-      | '*' {_tokenStartCharPositionInLine == 0}?
+LEADING_ASTERISK : ( (' '|'\t') {_tokenStartCharPositionInLine == 0
+                                    || previousTokenType == NEWLINE}? ) (' '|'\t')* '*'
+      | '*' {_tokenStartCharPositionInLine == 0 || previousTokenType == NEWLINE}?
       ;
 
 HTML_COMMENT_START : '<!--' {recognizeXmlTags}?
@@ -59,7 +60,7 @@ OPEN: '<' {recognizeXmlTags && (Character.isLetter(_input.LA(1)) || _input.LA(1)
 //      {insidePreTag=false; recognizeXmlTags=true;}
 //      ;
 
-NEWLINE: '\n' | '\r\n';
+NEWLINE: '\n' | '\r\n' | '\r';
 
 AUTHOR_LITERAL : '@author' {isJavadocTagAvailable}?;
 DEPRECATED_LITERAL : '@deprecated' {isJavadocTagAvailable}?;
@@ -119,7 +120,7 @@ Newline5: NEWLINE
 Leading_asterisk3: LEADING_ASTERISK -> type(LEADING_ASTERISK);
 XmlTagOpen1: '<' -> type(OPEN), pushMode(xmlTagDefinition);
 STRING: '"' .*? '"' {referenceCatched = false;} -> mode(DEFAULT_MODE);
-PACKAGE: [a-z$] ([a-z_$] | '.')+ [a-z_$] {referenceCatched = true;};
+PACKAGE: [a-z_$] ([a-z0-9_$] | '.')+ [a-z0-9_$] {referenceCatched = true;};
 DOT: '.';
 HASH: '#' {referenceCatched = true;} -> mode(classMemeber);
 CLASS: [A-Z] [a-zA-Z0-9_$]* {referenceCatched = true;};
@@ -224,7 +225,8 @@ LINK_LITERAL : '@link' -> pushMode(seeLink);
 LINKPLAIN_LITERAL : '@linkplain' -> pushMode(seeLink);
 LITERAL_LITERAL : '@literal' {recognizeXmlTags=false;} -> mode(code);
 VALUE_LITERAL : '@value' -> pushMode(value);
-CustomName1: '@' [a-zA-Z0-9:._-]+ -> type(CUSTOM_NAME), mode(DEFAULT_MODE);
+CustomName1: '@' [a-zA-Z0-9:._-]+ {recognizeXmlTags=false;}
+                                      -> type(CUSTOM_NAME), mode(DEFAULT_MODE);
 Char6: . -> type(CHAR), mode(DEFAULT_MODE);
 //////////////////////////////////////////////////////////////////////////////////////
 mode code;

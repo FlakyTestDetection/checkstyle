@@ -19,10 +19,10 @@
 
 package com.puppycrawl.tools.checkstyle;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,10 +30,11 @@ import java.util.stream.Collectors;
 
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
+import com.puppycrawl.tools.checkstyle.utils.ModuleReflectionUtils;
 
 /**
- * A factory for creating objects from package names and names,
- * considering:
+ * A factory for creating objects from package names and names.
+ * Consider the below example for better understanding.
  * <ul>
  *     <li>module name - name of java class that represents module;</li>
  *     <li>module full name - fully qualifies name of java class that represents module;</li>
@@ -48,30 +49,43 @@ import com.puppycrawl.tools.checkstyle.api.LocalizedMessage;
  * @author lkuehne
  */
 public class PackageObjectFactory implements ModuleFactory {
-    /** Map of Checkstyle module names to their fully qualified names. */
-    private static final Map<String, String> NAME_TO_FULL_MODULE_NAME = new HashMap<>();
-
-    /** Exception message when null class loader is given. */
-    private static final String NULL_LOADER_MESSAGE = "moduleClassLoader must not be null";
+    /** Base package of checkstyle modules checks. */
+    public static final String BASE_PACKAGE = "com.puppycrawl.tools.checkstyle";
 
     /** Exception message when it is unable to create a class instance. */
-    private static final String UNABLE_TO_INSTANTIATE_EXCEPTION_MESSAGE =
-        "PackageObjectFactory.unableToInstantiateExceptionMessage";
+    public static final String UNABLE_TO_INSTANTIATE_EXCEPTION_MESSAGE =
+            "PackageObjectFactory.unableToInstantiateExceptionMessage";
 
-    /** Separator to use in strings. */
-    private static final String STRING_SEPARATOR = ", ";
+    /** Exception message when there is ambigugous module name in config file. */
+    public static final String AMBIGUOUS_MODULE_NAME_EXCEPTION_MESSAGE =
+            "PackageObjectFactory.ambiguousModuleNameExceptionMessage";
 
     /** Suffix of checks. */
-    private static final String CHECK_SUFFIX = "Check";
+    public static final String CHECK_SUFFIX = "Check";
 
-    /** Base package of checkstyle modules checks. */
-    private static final String BASE_PACKAGE = "com.puppycrawl.tools.checkstyle";
+    /** Character separate package names in qualified name of java class. */
+    public static final String PACKAGE_SEPARATOR = ".";
+
+    /** Exception message when null class loader is given. */
+    public static final String NULL_LOADER_MESSAGE = "moduleClassLoader must not be null";
+
+    /** Exception message when null package name is given. */
+    public static final String NULL_PACKAGE_MESSAGE = "package name must not be null";
+
+    /** Separator to use in strings. */
+    public static final String STRING_SEPARATOR = ", ";
+
+    /** Map of Checkstyle module names to their fully qualified names. */
+    private static final Map<String, String> NAME_TO_FULL_MODULE_NAME = new HashMap<>();
 
     /** A list of package names to prepend to class names. */
     private final Set<String> packages;
 
     /** The class loader used to load Checkstyle core and custom modules. */
     private final ClassLoader moduleClassLoader;
+
+    /** Map of third party Checkstyle module names to the set of their fully qualified names. */
+    private Map<String, Set<String>> thirdPartyNameToFullModuleNames;
 
     static {
         fillShortToFullModuleNamesMap();
@@ -86,6 +100,9 @@ public class PackageObjectFactory implements ModuleFactory {
     public PackageObjectFactory(Set<String> packageNames, ClassLoader moduleClassLoader) {
         if (moduleClassLoader == null) {
             throw new IllegalArgumentException(NULL_LOADER_MESSAGE);
+        }
+        if (packageNames.contains(null)) {
+            throw new IllegalArgumentException(NULL_PACKAGE_MESSAGE);
         }
 
         //create a copy of the given set, but retain ordering
@@ -102,6 +119,9 @@ public class PackageObjectFactory implements ModuleFactory {
     public PackageObjectFactory(String packageName, ClassLoader moduleClassLoader) {
         if (moduleClassLoader == null) {
             throw new IllegalArgumentException(NULL_LOADER_MESSAGE);
+        }
+        if (packageName == null) {
+            throw new IllegalArgumentException(NULL_PACKAGE_MESSAGE);
         }
 
         packages = new LinkedHashSet<>(1);
@@ -121,78 +141,126 @@ public class PackageObjectFactory implements ModuleFactory {
      */
     @Override
     public Object createModule(String name) throws CheckstyleException {
-        Object instance = createObjectFromMap(name);
+        Object instance = null;
+        // if the name is a simple class name, try to find it in maps at first
+        if (!name.contains(PACKAGE_SEPARATOR)) {
+            // find the name in hardcode map
+            final String fullModuleName = NAME_TO_FULL_MODULE_NAME.get(name);
+            if (fullModuleName == null) {
+                final String fullCheckModuleName =
+                        NAME_TO_FULL_MODULE_NAME.get(name + CHECK_SUFFIX);
+                if (fullCheckModuleName != null) {
+                    instance = createObject(fullCheckModuleName);
+                }
+            }
+            else {
+                instance = createObject(fullModuleName);
+            }
+
+            // find the name in third party map
+            if (instance == null) {
+                if (thirdPartyNameToFullModuleNames == null) {
+                    thirdPartyNameToFullModuleNames =
+                            generateThirdPartyNameToFullModuleName(moduleClassLoader);
+                }
+                instance = createObjectFromMap(name, thirdPartyNameToFullModuleNames);
+            }
+        }
+
         if (instance == null) {
-            instance = createObjectWithIgnoringProblems(name, getAllPossibleNames(name));
+            instance = createObject(name);
+        }
+        final String nameCheck = name + CHECK_SUFFIX;
+        if (instance == null) {
+            instance = createObject(nameCheck);
         }
         if (instance == null) {
-            final String nameCheck = name + CHECK_SUFFIX;
-            instance = createObjectWithIgnoringProblems(nameCheck, getAllPossibleNames(nameCheck));
-            if (instance == null) {
-
-                final String attemptedNames = joinPackageNamesWithClassName(name, packages)
-                        + STRING_SEPARATOR + nameCheck + STRING_SEPARATOR
-                        + joinPackageNamesWithClassName(nameCheck, packages);
-                final LocalizedMessage exceptionMessage = new LocalizedMessage(0,
-                    Definitions.CHECKSTYLE_BUNDLE, UNABLE_TO_INSTANTIATE_EXCEPTION_MESSAGE,
-                    new String[] {name, attemptedNames}, null, getClass(), null);
-                throw new CheckstyleException(exceptionMessage.getMessage());
-            }
+            final String attemptedNames = joinPackageNamesWithClassName(name, packages)
+                    + STRING_SEPARATOR + nameCheck + STRING_SEPARATOR
+                    + joinPackageNamesWithClassName(nameCheck, packages);
+            final LocalizedMessage exceptionMessage = new LocalizedMessage(0,
+                Definitions.CHECKSTYLE_BUNDLE, UNABLE_TO_INSTANTIATE_EXCEPTION_MESSAGE,
+                new String[] {name, attemptedNames}, null, getClass(), null);
+            throw new CheckstyleException(exceptionMessage.getMessage());
         }
         return instance;
     }
 
     /**
-     * Create object with the help of Checkstyle NAME_TO_FULL_MODULE_NAME map.
+     * Create object with the help of the supplied map.
      * @param name name of module.
-     * @return instance of module if it is found in modules map.
-     * @throws CheckstyleException if the class fails to instantiate.
+     * @param map the supplied map.
+     * @return instance of module if it is found in modules map and no ambiguous classes exist.
+     * @throws CheckstyleException if the class fails to instantiate or there are ambiguous classes.
      */
-    private Object createObjectFromMap(String name) throws CheckstyleException {
-        final String fullModuleName = NAME_TO_FULL_MODULE_NAME.get(name);
+    private Object createObjectFromMap(String name, Map<String, Set<String>> map)
+            throws CheckstyleException {
+        final Set<String> fullModuleNames = map.get(name);
         Object instance = null;
-        if (fullModuleName == null) {
-            final String fullCheckModuleName = NAME_TO_FULL_MODULE_NAME.get(name + CHECK_SUFFIX);
-            if (fullCheckModuleName != null) {
-                instance = createObject(fullCheckModuleName);
+        if (fullModuleNames == null) {
+            final Set<String> fullCheckModuleNames = map.get(name + CHECK_SUFFIX);
+            if (fullCheckModuleNames != null) {
+                instance = createObjectFromFullModuleNames(name, fullCheckModuleNames);
             }
         }
         else {
-            instance = createObject(fullModuleName);
+            instance = createObjectFromFullModuleNames(name, fullModuleNames);
         }
         return instance;
     }
 
     /**
-     * Create a new instance of a named class.
-     * @param className the name of the class to instantiate.
-     * @param secondAttempt the set of names to attempt instantiation
-     *                      if usage of the className was not successful.
-     * @return the {@code Object} created by loader or null.
-     * @throws CheckstyleException if the class fails to instantiate.
+     * Create Object from optional full module names.
+     * In most case, there should be only one element in {@code fullModuleName}, otherwise
+     * an exception would be thrown.
+     * @param name name of module
+     * @param fullModuleNames the supplied full module names set
+     * @return instance of module if there is only one element in {@code fullModuleName}
+     * @throws CheckstyleException if the class fails to instantiate or there are more than one
+     *      element in {@code fullModuleName}
      */
-    private Object createObjectWithIgnoringProblems(String className, Set<String> secondAttempt)
+    private Object createObjectFromFullModuleNames(String name, Set<String> fullModuleNames)
             throws CheckstyleException {
-        Object instance = createObject(className);
-        if (instance == null) {
-            final Iterator<String> ite = secondAttempt.iterator();
-            while (instance == null && ite.hasNext()) {
-                instance = createObject(ite.next());
-            }
+        final Object returnValue;
+        if (fullModuleNames.size() == 1) {
+            returnValue = createObject(fullModuleNames.iterator().next());
         }
-        return instance;
+        else {
+            final String optionalNames = fullModuleNames.stream()
+                    .sorted()
+                    .collect(Collectors.joining(STRING_SEPARATOR));
+            final LocalizedMessage exceptionMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, AMBIGUOUS_MODULE_NAME_EXCEPTION_MESSAGE,
+                    new String[] {name, optionalNames}, null, getClass(), null);
+            throw new CheckstyleException(exceptionMessage.getMessage());
+        }
+        return returnValue;
     }
 
     /**
-     * Generate the set of all possible names for a class name.
-     * @param name the name of the class get possible names for.
-     * @return all possible name for a class.
+     * Generate the map of third party Checkstyle module names to the set of their fully qualified
+     * names.
+     * @param loader the class loader used to load Checkstyle package names
+     * @return the map of third party Checkstyle module names to the set of their fully qualified
+     *      names
      */
-    private Set<String> getAllPossibleNames(String name) {
-        final Set<String> names = new HashSet<>();
-        names.addAll(packages.stream().map(packageName -> packageName + name)
-            .collect(Collectors.toList()));
-        return names;
+    private Map<String, Set<String>> generateThirdPartyNameToFullModuleName(ClassLoader loader) {
+        Map<String, Set<String>> returnValue;
+        try {
+            returnValue = ModuleReflectionUtils.getCheckstyleModules(packages, loader).stream()
+                    .collect(Collectors.toMap(
+                        Class::getSimpleName,
+                        cls -> Collections.singleton(cls.getCanonicalName()),
+                        (fullNames1, fullNames2) -> {
+                            final Set<String> mergedNames = new LinkedHashSet<>(fullNames1);
+                            mergedNames.addAll(fullNames2);
+                            return mergedNames;
+                        }));
+        }
+        catch (IOException ignore) {
+            returnValue = new HashMap<>();
+        }
+        return returnValue;
     }
 
     /**
@@ -202,8 +270,9 @@ public class PackageObjectFactory implements ModuleFactory {
      * @return a string which is obtained by joining package names with a class name.
      */
     private static String joinPackageNamesWithClassName(String className, Set<String> packages) {
-        return packages.stream().filter(name -> name != null)
-            .collect(Collectors.joining(className + STRING_SEPARATOR, "", className));
+        return packages.stream()
+            .collect(Collectors.joining(
+                    className + STRING_SEPARATOR, "", PACKAGE_SEPARATOR + className));
     }
 
     /**
@@ -219,7 +288,7 @@ public class PackageObjectFactory implements ModuleFactory {
             clazz = Class.forName(className, true, moduleClassLoader);
         }
         catch (final ReflectiveOperationException | NoClassDefFoundError ignored) {
-            // keep looking, ignoring exception
+            // ignore the exception
         }
 
         Object instance = null;

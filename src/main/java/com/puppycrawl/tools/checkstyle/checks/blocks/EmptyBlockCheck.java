@@ -29,7 +29,7 @@ import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 /**
  * Checks for empty blocks. This check does not validate sequential blocks.
  * The policy to verify is specified using the {@link
- * BlockOption} class and defaults to {@link BlockOption#STMT}.
+ * BlockOption} class and defaults to {@link BlockOption#STATEMENT}.
  *
  * <p> By default the check will check the following blocks:
  *  {@link TokenTypes#LITERAL_WHILE LITERAL_WHILE},
@@ -69,7 +69,7 @@ public class EmptyBlockCheck
      * A key is pointing to the warning message text in "messages.properties"
      * file.
      */
-    public static final String MSG_KEY_BLOCK_NO_STMT = "block.noStmt";
+    public static final String MSG_KEY_BLOCK_NO_STATEMENT = "block.noStatement";
 
     /**
      * A key is pointing to the warning message text in "messages.properties"
@@ -78,7 +78,7 @@ public class EmptyBlockCheck
     public static final String MSG_KEY_BLOCK_EMPTY = "block.empty";
 
     /** The policy to enforce. */
-    private BlockOption option = BlockOption.STMT;
+    private BlockOption option = BlockOption.STATEMENT;
 
     /**
      * Set the option to enforce.
@@ -141,7 +141,7 @@ public class EmptyBlockCheck
     public void visitToken(DetailAST ast) {
         final DetailAST leftCurly = findLeftCurly(ast);
         if (leftCurly != null) {
-            if (option == BlockOption.STMT) {
+            if (option == BlockOption.STATEMENT) {
                 final boolean emptyBlock;
                 if (leftCurly.getType() == TokenTypes.LCURLY) {
                     emptyBlock = leftCurly.getNextSibling().getType() != TokenTypes.CASE_GROUP;
@@ -152,7 +152,7 @@ public class EmptyBlockCheck
                 if (emptyBlock) {
                     log(leftCurly.getLineNo(),
                         leftCurly.getColumnNo(),
-                        MSG_KEY_BLOCK_NO_STMT,
+                        MSG_KEY_BLOCK_NO_STATEMENT,
                         ast.getText());
                 }
             }
@@ -166,6 +166,7 @@ public class EmptyBlockCheck
     }
 
     /**
+     * Checks if SLIST token contains any text.
      * @param slistAST a {@code DetailAST} value
      * @return whether the SLIST token contains any text.
      */
@@ -194,9 +195,10 @@ public class EmptyBlockCheck
             }
         }
         else {
-            // check only whitespace of first & last lines
-            if (lines[slistLineNo - 1].substring(slistColNo + 1).trim().isEmpty()
-                    && lines[rcurlyLineNo - 1].substring(0, rcurlyColNo).trim().isEmpty()) {
+            final String firstLine = lines[slistLineNo - 1].substring(slistColNo + 1);
+            final String lastLine = lines[rcurlyLineNo - 1].substring(0, rcurlyColNo);
+            if (CommonUtils.isBlank(firstLine)
+                    && CommonUtils.isBlank(lastLine)) {
                 // check if all lines are also only whitespace
                 returnValue = !checkIsAllLinesAreWhitespace(lines, slistLineNo, rcurlyLineNo);
             }
@@ -221,7 +223,7 @@ public class EmptyBlockCheck
     private static boolean checkIsAllLinesAreWhitespace(String[] lines, int lineFrom, int lineTo) {
         boolean result = true;
         for (int i = lineFrom; i < lineTo - 1; i++) {
-            if (!lines[i].trim().isEmpty()) {
+            if (!CommonUtils.isBlank(lines[i])) {
                 result = false;
                 break;
             }
@@ -241,6 +243,7 @@ public class EmptyBlockCheck
         if ((ast.getType() == TokenTypes.LITERAL_CASE
                 || ast.getType() == TokenTypes.LITERAL_DEFAULT)
                 && ast.getNextSibling() != null
+                && ast.getNextSibling().getFirstChild() != null
                 && ast.getNextSibling().getFirstChild().getType() == TokenTypes.SLIST) {
             leftCurly = ast.getNextSibling().getFirstChild();
         }

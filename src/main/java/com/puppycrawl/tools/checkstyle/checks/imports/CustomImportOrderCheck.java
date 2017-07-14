@@ -29,6 +29,7 @@ import com.puppycrawl.tools.checkstyle.api.AbstractCheck;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.FullIdent;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
+import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 
 /**
  * <p>
@@ -711,7 +712,8 @@ public class CustomImportOrderCheck extends AbstractCheck {
         //  [lineNo - 2] is the number of the previous line
         //  because the numbering starts from zero.
         int lineBeforeIndex = lineNo - 2;
-        while (lineBeforeIndex >= 0 && lines[lineBeforeIndex].trim().isEmpty()) {
+        while (lineBeforeIndex >= 0
+                && CommonUtils.isBlank(lines[lineBeforeIndex])) {
             lineBeforeIndex--;
             result++;
         }
@@ -777,7 +779,7 @@ public class CustomImportOrderCheck extends AbstractCheck {
     }
 
     /**
-     * Extracts defined amount of domains from the left side of package/import identifier
+     * Extracts defined amount of domains from the left side of package/import identifier.
      * @param firstPackageDomainsCount
      *        number of first package domains.
      * @param packageFullPath
@@ -817,6 +819,7 @@ public class CustomImportOrderCheck extends AbstractCheck {
         private final boolean staticImport;
 
         /**
+         * Initialise importFullPath, lineNumber, importGroup, staticImport.
          * @param importFullPath
          *        import full path.
          * @param lineNumber
