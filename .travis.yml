@@ -1,3 +1,7 @@
+language: java
+sudo: false
+dist: precise
+
 addons:
   apt:
     packages:
@@ -23,7 +27,6 @@ cache:
   - ~/.m2
 install:
 - "if [ \"${TRAVIS_OS_NAME}\" == \"osx\" ]; then\n  # https://github.com/travis-ci/travis-ci/issues/6307#issuecomment-233315824\n  rvm get head\nfi\n"
-language: java
 notifications:
   email: false
   slack:
