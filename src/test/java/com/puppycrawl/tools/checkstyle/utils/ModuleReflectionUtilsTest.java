@@ -28,6 +28,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.puppycrawl.tools.checkstyle.TreeWalkerAuditEvent;
+import com.puppycrawl.tools.checkstyle.TreeWalkerFilter;
 import com.puppycrawl.tools.checkstyle.api.AbstractCheck;
 import com.puppycrawl.tools.checkstyle.api.AbstractFileSetCheck;
 import com.puppycrawl.tools.checkstyle.api.AuditEvent;
@@ -48,49 +50,77 @@ public class ModuleReflectionUtilsTest {
 
     @Test
     public void testIsCheckstyleModule() {
-        assertTrue(ModuleReflectionUtils.isCheckstyleModule(CheckClass.class));
-        assertTrue(ModuleReflectionUtils.isCheckstyleModule(FileSetModuleClass.class));
-        assertTrue(ModuleReflectionUtils.isCheckstyleModule(FilterClass.class));
-        assertTrue(ModuleReflectionUtils.isCheckstyleModule(FileFilterModuleClass.class));
-        assertTrue(ModuleReflectionUtils.isCheckstyleModule(RootModuleClass.class));
+        assertTrue("Should return true when checkstyle module is passed",
+                ModuleReflectionUtils.isCheckstyleModule(CheckClass.class));
+        assertTrue("Should return true when checkstyle module is passed",
+                ModuleReflectionUtils.isCheckstyleModule(FileSetModuleClass.class));
+        assertTrue("Should return true when checkstyle module is passed",
+                ModuleReflectionUtils.isCheckstyleModule(FilterClass.class));
+        assertTrue("Should return true when checkstyle module is passed",
+                ModuleReflectionUtils.isCheckstyleModule(TreeWalkerFilterClass.class));
+        assertTrue("Should return true when checkstyle module is passed",
+                ModuleReflectionUtils.isCheckstyleModule(FileFilterModuleClass.class));
+        assertTrue("Should return true when checkstyle module is passed",
+                ModuleReflectionUtils.isCheckstyleModule(RootModuleClass.class));
     }
 
     @Test
     public void testIsValidCheckstyleClass() {
-        assertTrue(ModuleReflectionUtils.isValidCheckstyleClass(ValidCheckstyleClass.class));
-        assertFalse(ModuleReflectionUtils
+        assertTrue("Should return true when valid checkstyle class is passed",
+                ModuleReflectionUtils.isValidCheckstyleClass(ValidCheckstyleClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils
                 .isValidCheckstyleClass(InvalidNonAutomaticBeanClass.class));
-        assertFalse(ModuleReflectionUtils.isValidCheckstyleClass(AbstractInvalidClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils.isValidCheckstyleClass(AbstractInvalidClass.class));
     }
 
     @Test
     public void testIsCheckstyleCheck() {
-        assertTrue(ModuleReflectionUtils.isCheckstyleCheck(CheckClass.class));
-        assertFalse(ModuleReflectionUtils.isCheckstyleCheck(NotCheckstyleCheck.class));
+        assertTrue("Should return true when valid checkstyle check is passed",
+                ModuleReflectionUtils.isCheckstyleCheck(CheckClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils.isCheckstyleCheck(NotCheckstyleCheck.class));
     }
 
     @Test
     public void testIsFileSetModule() {
-        assertTrue(ModuleReflectionUtils.isFileSetModule(FileSetModuleClass.class));
-        assertFalse(ModuleReflectionUtils.isFileSetModule(NotCheckstyleCheck.class));
+        assertTrue("Should return true when valid checkstyle file set module is passed",
+                ModuleReflectionUtils.isFileSetModule(FileSetModuleClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils.isFileSetModule(NotCheckstyleCheck.class));
     }
 
     @Test
     public void testIsFilterModule() {
-        assertTrue(ModuleReflectionUtils.isFilterModule(FilterClass.class));
-        assertFalse(ModuleReflectionUtils.isFilterModule(NotCheckstyleCheck.class));
+        assertTrue("Should return true when valid checkstyle filter module is passed",
+                ModuleReflectionUtils.isFilterModule(FilterClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils.isFilterModule(NotCheckstyleCheck.class));
     }
 
     @Test
     public void testIsFileFilterModule() {
-        assertTrue(ModuleReflectionUtils.isFileFilterModule(FileFilterModuleClass.class));
-        assertFalse(ModuleReflectionUtils.isFileFilterModule(NotCheckstyleCheck.class));
+        assertTrue("Should return true when valid checkstyle file filter module is passed",
+                ModuleReflectionUtils.isFileFilterModule(FileFilterModuleClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils.isFileFilterModule(NotCheckstyleCheck.class));
+    }
+
+    @Test
+    public void testIsTreeWalkerFilterModule() {
+        assertTrue("Should return true when valid checkstyle TreeWalker filter module is passed",
+                ModuleReflectionUtils.isTreeWalkerFilterModule(TreeWalkerFilterClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils.isTreeWalkerFilterModule(NotCheckstyleCheck.class));
     }
 
     @Test
     public void testIsRootModule() {
-        assertTrue(ModuleReflectionUtils.isRootModule(RootModuleClass.class));
-        assertFalse(ModuleReflectionUtils.isRootModule(NotCheckstyleCheck.class));
+        assertTrue("Should return true when valid checkstyle root module is passed",
+                ModuleReflectionUtils.isRootModule(RootModuleClass.class));
+        assertFalse("Should return false when invalid class is passed",
+                ModuleReflectionUtils.isRootModule(NotCheckstyleCheck.class));
     }
 
     private static class ValidCheckstyleClass extends AutomaticBean {
@@ -175,6 +205,13 @@ public class ModuleReflectionUtilsTest {
         @Override
         public void setModuleClassLoader(ClassLoader moduleClassLoader) {
             //dummy method
+        }
+    }
+
+    private static class TreeWalkerFilterClass extends AutomaticBean implements TreeWalkerFilter {
+        @Override
+        public boolean accept(TreeWalkerAuditEvent treeWalkerAuditEvent) {
+            return false;
         }
     }
 

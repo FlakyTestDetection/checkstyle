@@ -78,7 +78,7 @@
     <inspection_tool class="AssertMessageNotString" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AssertStatement" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AssertWithSideEffects" enabled="true" level="ERROR" enabled_by_default="true" />
-    <inspection_tool class="AssertsWithoutMessages" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="AssertsWithoutMessages" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AssertsWithoutMessagesTestNG" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AssignmentResultUsedJS" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AssignmentToCatchBlockParameter" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -196,7 +196,7 @@
         <option name="onlyWarnOnBaseMethods" value="true" />
         <option name="questionString" value="is,can,has,should,could,will,shall,check,contains,equals,add,put,remove,starts,ends,are,was,matches,start,must,accept" />
     </inspection_tool>
-    <inspection_tool class="BooleanParameter" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="BooleanParameter" enabled="true" level="ERROR" enabled_by_default="true" />
     <!-- even it is always negated, it is better than possible negation/inversion of negated term -->
     <inspection_tool class="BooleanVariableAlwaysNegated" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="BoxingBoxedValue" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -332,7 +332,7 @@
     </inspection_tool>
     <inspection_tool class="ClassWithOnlyPrivateConstructors" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ClassWithTooManyDependencies" enabled="true" level="ERROR" enabled_by_default="true">
-        <option name="limit" value="33" />
+        <option name="limit" value="34" />
     </inspection_tool>
     <inspection_tool class="ClassWithTooManyDependents" enabled="true" level="ERROR" enabled_by_default="true">
         <option name="limit" value="300" />
@@ -675,7 +675,7 @@
     <inspection_tool class="EqualsReplaceableByObjectsCall" enabled="true" level="ERROR" enabled_by_default="true" >
         <option name="checkNotNull" value="true" />
     </inspection_tool>
-    <inspection_tool class="EqualsUsesNonFinalVariable" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="EqualsUsesNonFinalVariable" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="EqualsWhichDoesntCheckParameterClass" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="EqualsWithItself" enabled="true" level="ERROR" enabled_by_default="true" />
     <!-- there is false-positive, and rest cases are result of our loading modules by reflection
@@ -974,7 +974,7 @@
     <!-- there are too much false positives in RegExps and javadoc start/end symbols in paths from classpath etc. -->
     <inspection_tool class="HardcodedLineSeparators" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="HardwiredNamespacePrefix" enabled="true" level="ERROR" enabled_by_default="true" />
-    <inspection_tool class="HashCodeUsesNonFinalVariable" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="HashCodeUsesNonFinalVariable" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="HibernateConfigDomFacetInspection" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="HibernateConfigDomInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="HibernateMappingDatasourceDomInspection" enabled="true" level="WARNING" enabled_by_default="true" />

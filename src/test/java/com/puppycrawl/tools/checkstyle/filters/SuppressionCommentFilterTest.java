@@ -252,11 +252,12 @@ public class SuppressionCommentFilterTest
     @Test
     public void testToStringOfTagClass() {
         final SuppressionCommentFilter.Tag tag = new SuppressionCommentFilter.Tag(
-                0, 1, "text", false, new SuppressionCommentFilter()
+                0, 1, "text",
+                SuppressionCommentFilter.TagType.OFF, new SuppressionCommentFilter()
         );
 
         assertEquals("Invalid toString result",
-            "Tag[text='text', line=0, column=1, on=false,"
+            "Tag[text='text', line=0, column=1, type=OFF,"
                     + " tagCheckRegexp=.*, tagMessageRegexp=null]", tag.toString());
     }
 
@@ -299,8 +300,8 @@ public class SuppressionCommentFilterTest
     public void testAcceptNullLocalizedMessage() {
         final SuppressionCommentFilter filter = new SuppressionCommentFilter();
         final TreeWalkerAuditEvent auditEvent = new TreeWalkerAuditEvent(null, null, null);
-        Assert.assertTrue(filter.accept(auditEvent));
-        Assert.assertNull(auditEvent.getFileName());
+        Assert.assertTrue("Filter should accept audit event", filter.accept(auditEvent));
+        Assert.assertNull("File name should not be null", auditEvent.getFileName());
     }
 
     @Test
@@ -338,7 +339,7 @@ public class SuppressionCommentFilterTest
         final TreeWalkerAuditEvent dummyEvent = new TreeWalkerAuditEvent(contents, "filename",
                 new LocalizedMessage(1, null, null, null, null, Object.class, null));
         final boolean result = suppressionCommentFilter.accept(dummyEvent);
-        assertFalse(result);
+        assertFalse("Fileter should not accept event", result);
     }
 
     @Test
@@ -363,6 +364,6 @@ public class SuppressionCommentFilterTest
         suppressionCommentFilter.accept(dummyEvent2);
         final List<SuppressionCommentFilter.Tag> tags =
                 Whitebox.getInternalState(suppressionCommentFilter, "tags");
-        assertEquals(1, tags.size());
+        assertEquals("Invalid tags size", 1, tags.size());
     }
 }

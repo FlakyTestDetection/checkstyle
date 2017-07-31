@@ -127,9 +127,9 @@ public class RequireThisCheckTest extends AbstractModuleTestSupport {
     @Test
     public void testTokensNotNull() {
         final RequireThisCheck check = new RequireThisCheck();
-        Assert.assertNotNull(check.getAcceptableTokens());
-        Assert.assertNotNull(check.getDefaultTokens());
-        Assert.assertNotNull(check.getRequiredTokens());
+        Assert.assertNotNull("Acceptable tokens should not be null", check.getAcceptableTokens());
+        Assert.assertNotNull("Acceptable tokens should not be null", check.getDefaultTokens());
+        Assert.assertNotNull("Acceptable tokens should not be null", check.getRequiredTokens());
     }
 
     @Test
@@ -291,5 +291,12 @@ public class RequireThisCheckTest extends AbstractModuleTestSupport {
             "60:34: " + getCheckMessage(MSG_VARIABLE, "b", ""),
         };
         verify(checkConfig, getPath("InputRequireThisAllowLambdaParameters.java"), expected);
+    }
+
+    @Test
+    public void test() throws Exception {
+        final DefaultConfiguration checkConfig = createModuleConfig(RequireThisCheck.class);
+        final String[] expected = CommonUtils.EMPTY_STRING_ARRAY;
+        verify(checkConfig, getPath("InputRequireThisCaseGroup.java"), expected);
     }
 }
