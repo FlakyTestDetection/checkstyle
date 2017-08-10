@@ -123,7 +123,7 @@ public class MainTest {
             getClass(), null);
 
     private final LocalizedMessage errorCounterOneMessage = new LocalizedMessage(0,
-            Definitions.CHECKSTYLE_BUNDLE, "Main.errorCounter",
+            Definitions.CHECKSTYLE_BUNDLE, Main.ERROR_COUNTER,
             new String[] {String.valueOf(1)}, null, getClass(), null);
 
     private static String getPath(String filename) {
@@ -338,7 +338,7 @@ public class MainTest {
         exit.expectSystemExitWithStatus(2);
         exit.checkAssertionAfterwards(() -> {
             final LocalizedMessage errorCounterTwoMessage = new LocalizedMessage(0,
-                    Definitions.CHECKSTYLE_BUNDLE, "Main.errorCounter",
+                    Definitions.CHECKSTYLE_BUNDLE, Main.ERROR_COUNTER,
                     new String[] {String.valueOf(2)}, null, getClass(), null);
             final LocalizedMessage invalidPatternMessageMain = new LocalizedMessage(0,
                     "com.puppycrawl.tools.checkstyle.checks.naming.messages",
@@ -510,8 +510,22 @@ public class MainTest {
             // We do separate validation for message as in Windows
             // disk drive letter appear in message,
             // so we skip that drive letter for compatibility issues
+            final LocalizedMessage loadPropertiesMessage = new LocalizedMessage(0,
+                    Definitions.CHECKSTYLE_BUNDLE, Main.LOAD_PROPERTIES_EXCEPTION,
+                    new String[] {""}, null, getClass(), null);
+            final String causeMessage = ex.getCause().getLocalizedMessage();
+            final String localizedMessage = loadPropertiesMessage.getMessage();
+            final boolean samePrefix = causeMessage.substring(0, causeMessage.indexOf(' '))
+                    .equals(localizedMessage
+                            .substring(0, localizedMessage.indexOf(' ')));
+            final boolean sameSufix =
+                    causeMessage.substring(causeMessage.lastIndexOf(' '), causeMessage.length())
+                    .equals(localizedMessage
+                            .substring(localizedMessage.lastIndexOf(' '),
+                                    localizedMessage.length()));
+            assertTrue("Invalid error message", samePrefix || sameSufix);
             assertTrue("Invalid error message",
-                    ex.getCause().getLocalizedMessage().contains(":invalid"));
+                    causeMessage.contains(":invalid"));
         }
     }
 
@@ -526,7 +540,7 @@ public class MainTest {
         }
         catch (InvocationTargetException ex) {
             final LocalizedMessage loadPropertiesMessage = new LocalizedMessage(0,
-                    Definitions.CHECKSTYLE_BUNDLE, "Main.createListener",
+                    Definitions.CHECKSTYLE_BUNDLE, Main.CREATE_LISTENER_EXCEPTION,
                     new String[] {"myformat", "plain", "xml"}, null, getClass(), null);
             assertEquals("Invalid error message",
                     loadPropertiesMessage.getMessage(), ex.getCause().getLocalizedMessage());
@@ -551,7 +565,7 @@ public class MainTest {
         }
         catch (InvocationTargetException ex) {
             final LocalizedMessage createListenerMessage = new LocalizedMessage(0,
-                    Definitions.CHECKSTYLE_BUNDLE, "Main.createListener",
+                    Definitions.CHECKSTYLE_BUNDLE, Main.CREATE_LISTENER_EXCEPTION,
                     new String[] {"myformat", "plain", "xml"}, null, getClass(), null);
             assertEquals("Invalid error message",
                     createListenerMessage.getMessage(), ex.getCause().getLocalizedMessage());
