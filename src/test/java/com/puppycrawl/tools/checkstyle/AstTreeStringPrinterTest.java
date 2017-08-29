@@ -47,9 +47,9 @@ public class AstTreeStringPrinterTest extends AbstractTreeTestSupport {
 
     @Test
     public void testParseFileThrowable() throws Exception {
+        final File input = new File(getNonCompilablePath("InputAstTreeStringPrinter.java"));
         try {
-            AstTreeStringPrinter.printFileAst(
-                new File(getNonCompilablePath("InputAstTreeStringPrinter.java")),
+            AstTreeStringPrinter.printFileAst(input,
                     AstTreeStringPrinter.PrintOptions.WITHOUT_COMMENTS);
             Assert.fail("exception expected");
         }
@@ -57,7 +57,8 @@ public class AstTreeStringPrinterTest extends AbstractTreeTestSupport {
             Assert.assertSame("Invalid class",
                     NoViableAltException.class, ex.getCause().getClass());
             Assert.assertEquals("Invalid exception message",
-                    "unexpected token: classD", ex.getCause().getMessage());
+                    input.getAbsolutePath() + ":1:1: unexpected token: classD",
+                    ex.getCause().toString());
         }
     }
 
@@ -122,9 +123,24 @@ public class AstTreeStringPrinterTest extends AbstractTreeTestSupport {
     }
 
     @Test
+    public void testAstTreeBlockCommentsCarriageReturn() throws Exception {
+        verifyAst(getPath("InputFullOfBlockCommentsAstCR.txt"),
+                getPath("InputFullOfBlockCommentsCR.java"),
+                AstTreeStringPrinter.PrintOptions.WITH_COMMENTS);
+    }
+
+    @Test
     public void testAstTreeSingleLineComments() throws Exception {
         verifyAst(getPath("InputFullOfSinglelineCommentsAst.txt"),
                 getPath("InputFullOfSinglelineComments.java"),
                 AstTreeStringPrinter.PrintOptions.WITH_COMMENTS);
+    }
+
+    @Test
+    public void testJavadocTagsWithoutArgs() throws Exception {
+        verifyJavaAndJavadocAst(
+                getPath("expectedAstTreeStringPrinterJavadocTagsWithoutArgsAst.txt"),
+                getPath("InputAstTreeStringPrinterJavadocTagsWithoutArgs.java")
+        );
     }
 }

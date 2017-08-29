@@ -114,16 +114,7 @@ htmlTag: htmlElementStart (htmlElement
                               | NEWLINE
                               | text
                               | javadocInlineTag)* htmlElementEnd
-
-            | htmlElementStart (htmlElement
-                              | ({!isNextJavadocTag()}? LEADING_ASTERISK)
-                              | htmlComment
-                              | CDATA
-                              | NEWLINE
-                              | text
-                              | javadocInlineTag)*
-            {notifyErrorListeners($htmlElementStart.ctx.getToken(HTML_TAG_NAME, 0).getSymbol()
-                                         , "javadoc.missed.html.close", null);}
+                              {isSameTagNames($htmlElementStart.ctx, $htmlElementEnd.ctx)}?
             ;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +124,7 @@ pTagStart: START P_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)* 
 pTagEnd: START SLASH P_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 paragraph: pTagStart
             (htmlTag
-            | emptyTag
+            | singletonElement
             | li
             | tr
             | td
@@ -175,7 +166,7 @@ liTagStart: START LI_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)
 liTagEnd: START SLASH LI_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 li: liTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | tr
         | td
@@ -217,7 +208,7 @@ trTagStart: START TR_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)
 trTagEnd: START SLASH TR_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 tr: trTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | td
@@ -259,7 +250,7 @@ tdTagStart: START TD_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)
 tdTagEnd: START SLASH TD_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 td: tdTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -301,7 +292,7 @@ thTagStart: START TH_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)
 thTagEnd: START SLASH TH_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 th: thTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -343,7 +334,7 @@ bodyTagStart: START BODY_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK |
 bodyTagEnd: START SLASH BODY_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 body: bodyTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -385,7 +376,7 @@ colgroupTagStart: START COLGROUP_HTML_TAG_NAME (attribute | NEWLINE | LEADING_AS
 colgroupTagEnd: START SLASH COLGROUP_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 colgroup: colgroupTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -427,7 +418,7 @@ ddTagStart: START DD_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)
 ddTagEnd: START SLASH DD_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 dd: ddTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -469,7 +460,7 @@ dtTagStart: START DT_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)
 dtTagEnd: START SLASH DT_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 dt: dtTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -511,7 +502,7 @@ headTagStart: START HEAD_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK |
 headTagEnd: START SLASH HEAD_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 head: headTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -553,7 +544,7 @@ htmlTagStart: START HTML_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK |
 htmlTagEnd: START SLASH HTML_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 html: htmlTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -595,7 +586,7 @@ optionTagStart: START OPTION_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERI
 optionTagEnd: START SLASH OPTION_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 option: optionTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -637,7 +628,7 @@ tbodyTagStart: START TBODY_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK
 tbodyTagEnd: START SLASH TBODY_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 tbody: tbodyTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -679,7 +670,7 @@ tfootTagStart: START TFOOT_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK
 tfootTagEnd: START SLASH TFOOT_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 tfoot: tfootTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -721,7 +712,7 @@ theadTagStart: START THEAD_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK
 theadTagEnd: START SLASH THEAD_HTML_TAG_NAME (NEWLINE | LEADING_ASTERISK | WS)* END;
 thead: theadTagStart
     (htmlTag
-        | emptyTag
+        | singletonElement
         | paragraph
         | li
         | tr
@@ -776,6 +767,11 @@ singletonElement: emptyTag
             | linkTag
             | metaTag
             | paramTag
+            | embedTag
+            | keygenTag
+            | sourceTag
+            | trackTag
+            | wbrTag
             | wrongSinletonTag
             ;
 
@@ -822,6 +818,16 @@ metaTag: START META_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)*
          (SLASH_END | END);
 paramTag: START PARAM_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)*
          (SLASH_END | END);
+embedTag: START EMBED_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)*
+         (SLASH_END | END);
+keygenTag: START KEYGEN_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)*
+         (SLASH_END | END);
+sourceTag: START SOURCE_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)*
+         (SLASH_END | END);
+trackTag: START TRACK_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)*
+         (SLASH_END | END);
+wbrTag: START WBR_HTML_TAG_NAME (attribute | NEWLINE | LEADING_ASTERISK | WS)*
+         (SLASH_END | END);
 
 wrongSinletonTag: START SLASH singletonTagName
                   END {notifyErrorListeners($singletonTagName.start,
@@ -840,6 +846,11 @@ singletonTagName: (AREA_HTML_TAG_NAME
                   | LINK_HTML_TAG_NAME
                   | META_HTML_TAG_NAME
                   | PARAM_HTML_TAG_NAME
+                  | EMBED_HTML_TAG_NAME
+                  | KEYGEN_HTML_TAG_NAME
+                  | SOURCE_HTML_TAG_NAME
+                  | TRACK_HTML_TAG_NAME
+                  | WBR_HTML_TAG_NAME
                   )
                   ;
 
@@ -866,32 +877,37 @@ reference:
       ;
 parameters: LEFT_BRACE (ARGUMENT | COMMA | WS | NEWLINE | LEADING_ASTERISK)* RIGHT_BRACE;
 
-javadocTag: AUTHOR_LITERAL (WS | NEWLINE)* description?
+javadocTag: AUTHOR_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) description)?
 
-    | DEPRECATED_LITERAL (WS | NEWLINE)* description?
+    | DEPRECATED_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) description)?
 
-      | EXCEPTION_LITERAL (WS | NEWLINE)* CLASS_NAME? (WS | NEWLINE)* description?
+      | EXCEPTION_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) CLASS_NAME)? (WS | NEWLINE)*
+          ((WS | NEWLINE) description)?
 
-      | PARAM_LITERAL (WS | NEWLINE)* PARAMETER_NAME? (WS | NEWLINE)* description?
+      | PARAM_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) PARAMETER_NAME)? (WS | NEWLINE)*
+          ((WS | NEWLINE) description)?
 
-      | RETURN_LITERAL (WS | NEWLINE)* description?
+      | RETURN_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) description)?
 
-      | SEE_LITERAL (WS | NEWLINE)* reference? (STRING | htmlElement)* (WS | NEWLINE)* description?
+      | SEE_LITERAL (WS | NEWLINE)* reference? (STRING | htmlElement)* (WS | NEWLINE)*
+          ((WS | NEWLINE) description)?
 
-      | SERIAL_LITERAL (WS | NEWLINE)* (LITERAL_INCLUDE | LITERAL_EXCLUDE)? description?
+      | SERIAL_LITERAL (WS | NEWLINE)*
+          ((WS | NEWLINE) description | LITERAL_INCLUDE | LITERAL_EXCLUDE)? (WS | NEWLINE)*
 
-      | SERIAL_DATA_LITERAL (WS | NEWLINE)* description?
+      | SERIAL_DATA_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) description)?
 
-      | SERIAL_FIELD_LITERAL (WS | NEWLINE)* FIELD_NAME? (WS | NEWLINE)* FIELD_TYPE?
-              (WS | NEWLINE)* description?
+      | SERIAL_FIELD_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) FIELD_NAME)? (WS | NEWLINE)*
+          ((WS | NEWLINE) FIELD_TYPE)? (WS | NEWLINE)* ((WS | NEWLINE) description)?
 
-      | SINCE_LITERAL (WS | NEWLINE)* description?
+      | SINCE_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) description)?
 
-      | THROWS_LITERAL (WS | NEWLINE)* CLASS_NAME? (WS | NEWLINE)* description?
+      | THROWS_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) CLASS_NAME)? (WS | NEWLINE)*
+          ((WS | NEWLINE) description)?
 
-      | VERSION_LITERAL (WS | NEWLINE)* description?
+      | VERSION_LITERAL (WS | NEWLINE)* ((WS | NEWLINE) description)?
 
-      | CUSTOM_NAME (WS | NEWLINE)* description?
+      | CUSTOM_NAME (WS | NEWLINE)* ((WS | NEWLINE) description)?
     ;
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////  JAVADOC INLINE TAGS  /////////////////////////////////////
@@ -902,11 +918,14 @@ javadocInlineTag:
             CODE_LITERAL (WS | NEWLINE | LEADING_ASTERISK | text)*
             | DOC_ROOT_LITERAL (WS | NEWLINE | LEADING_ASTERISK)*
             | INHERIT_DOC_LITERAL (WS | NEWLINE | LEADING_ASTERISK)*
-            | LINK_LITERAL (WS | NEWLINE | LEADING_ASTERISK)* reference description?
-            | LINKPLAIN_LITERAL (WS | NEWLINE | LEADING_ASTERISK)* reference description?
+            | LINK_LITERAL (WS | NEWLINE | LEADING_ASTERISK)* reference (WS | NEWLINE)*
+                ((WS | NEWLINE) description)?
+            | LINKPLAIN_LITERAL (WS | NEWLINE | LEADING_ASTERISK)* reference (WS | NEWLINE)*
+                ((WS | NEWLINE) description)?
             | LITERAL_LITERAL (WS | NEWLINE | LEADING_ASTERISK | text)*
-            | VALUE_LITERAL (WS | NEWLINE | LEADING_ASTERISK)* reference?
-            | CUSTOM_NAME (WS | NEWLINE | LEADING_ASTERISK)* description?
+            | VALUE_LITERAL (WS | NEWLINE | LEADING_ASTERISK)* ((WS | NEWLINE) reference)?
+            | CUSTOM_NAME (WS | NEWLINE | LEADING_ASTERISK)* (WS | NEWLINE)*
+                ((WS | NEWLINE) description)?
       )
       JAVADOC_INLINE_TAG_END
       ;

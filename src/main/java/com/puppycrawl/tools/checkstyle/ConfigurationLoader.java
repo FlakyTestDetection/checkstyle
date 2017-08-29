@@ -465,6 +465,7 @@ public final class ConfigurationLoader {
      * @throws CheckstyleException if the string contains an opening
      *                           {@code ${} without a closing
      *                           {@code }}
+     * @noinspection MethodWithMultipleReturnPoints
      */
     private static String replaceProperties(
             String value, PropertyResolver props, String defaultValue)
@@ -487,7 +488,8 @@ public final class ConfigurationLoader {
                 fragment = props.resolve(propertyName);
                 if (fragment == null) {
                     if (defaultValue != null) {
-                        return defaultValue;
+                        sb.replace(0, sb.length(), defaultValue);
+                        break;
                     }
                     throw new CheckstyleException(
                         "Property ${" + propertyName + "} has not been set");

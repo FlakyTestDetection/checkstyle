@@ -72,20 +72,35 @@ public final class TokenTypesDoclet {
             final FieldDoc[] fields = classes[0].fields();
             for (final FieldDoc field : fields) {
                 if (field.isStatic() && field.isPublic() && field.isFinal()
-                    && "int".equals(field.type().qualifiedTypeName())) {
-                    if (field.firstSentenceTags().length != 1) {
+                        && "int".equals(field.type().qualifiedTypeName())) {
+
+                    final String firstSentence;
+
+                    if (field.firstSentenceTags().length == 1) {
+                        firstSentence = field.firstSentenceTags()[0].text();
+                    }
+                    else if (Arrays.stream(field.firstSentenceTags())
+                            .filter(tag -> !"Text".equals(tag.name())).count() == 1) {
+                        // We have to filter "Text" tags because of jdk parsing bug
+                        // till JDK-8186270
+                        firstSentence = field.firstSentenceTags()[0].text()
+                                + "<code>"
+                                + field.firstSentenceTags()[1].text()
+                                + "</code>"
+                                + field.firstSentenceTags()[2].text();
+                    }
+                    else {
                         final List<Tag> tags = Arrays.asList(field.firstSentenceTags());
                         final String joinedTags = tags
                             .stream()
-                            .map(tag -> tag.toString())
+                            .map(Tag::toString)
                             .collect(Collectors.joining("\", \"", "[\"", "\"]"));
                         final String message = String.format(Locale.ROOT,
                                 "Should be only one tag for %s. Tags %s.",
                                 field.toString(), joinedTags);
                         throw new IllegalArgumentException(message);
                     }
-                    writer.println(field.name() + "="
-                            + field.firstSentenceTags()[0].text());
+                    writer.println(field.name() + "=" + firstSentence);
                 }
             }
         }
