@@ -218,7 +218,7 @@
     <maven.pmd.plugin.version>3.8</maven.pmd.plugin.version>
     <pmd.version>5.8.1</pmd.version>
     <maven.jacoco.plugin.version>0.7.9</maven.jacoco.plugin.version>
-    <saxon.version>9.8.0-5</saxon.version>
+    <saxon.version>9.8.0-6</saxon.version>
     <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
     <maven.sevntu.checkstyle.plugin.version>1.25.0</maven.sevntu.checkstyle.plugin.version>
     <maven.sevntu-checkstyle-check.checkstyle.version>8.5</maven.sevntu-checkstyle-check.checkstyle.version>
@@ -290,13 +290,13 @@
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>
       <artifactId>system-rules</artifactId>
-      <version>1.16.1</version>
+      <version>1.17.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>nl.jqno.equalsverifier</groupId>
       <artifactId>equalsverifier</artifactId>
-      <version>2.3.3</version>
+      <version>2.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -320,7 +320,7 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>4.9.0.201710071750-r</version>
+      <version>4.9.1.201712030800-r</version>
       <scope>test</scope>
     </dependency>
     <dependency>
