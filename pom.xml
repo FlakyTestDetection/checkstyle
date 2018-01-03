@@ -212,7 +212,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <projectVersion>${project.version}</projectVersion>
     <antlr4.version>4.7.1</antlr4.version>
-    <maven.site.plugin.version>3.6</maven.site.plugin.version>
+    <maven.site.plugin.version>3.7</maven.site.plugin.version>
     <maven.findbugs.plugin.version>3.0.5</maven.findbugs.plugin.version>
     <maven.spotbugs.plugin.version>3.0.6</maven.spotbugs.plugin.version>
     <maven.pmd.plugin.version>3.8</maven.pmd.plugin.version>
@@ -320,7 +320,7 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>4.9.2.201712150930-r</version>
+      <version>4.10.0.201712302008-r</version>
       <scope>test</scope>
     </dependency>
     <dependency>
