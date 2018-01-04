@@ -61,6 +61,7 @@ public class SuppressionCommentFilter
      * Enum to be used for switching checkstyle reporting for tags.
      */
     public enum TagType {
+
         /**
          * Switch reporting on.
          */
@@ -69,6 +70,7 @@ public class SuppressionCommentFilter
          * Switch reporting off.
          */
         OFF
+
     }
 
     /** Turns checkstyle reporting off. */
@@ -297,6 +299,7 @@ public class SuppressionCommentFilter
      */
     public static class Tag
         implements Comparable<Tag> {
+
         /** The text of the tag. */
         private final String text;
 
@@ -471,5 +474,7 @@ public class SuppressionCommentFilter
                     + ", tagCheckRegexp=" + tagCheckRegexp
                     + ", tagMessageRegexp=" + tagMessageRegexp + ']';
         }
+
     }
+
 }

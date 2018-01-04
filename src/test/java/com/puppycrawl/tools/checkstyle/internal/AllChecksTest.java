@@ -54,6 +54,7 @@ import com.puppycrawl.tools.checkstyle.utils.CommonUtils;
 import com.puppycrawl.tools.checkstyle.utils.ModuleReflectionUtils;
 
 public class AllChecksTest extends AbstractModuleTestSupport {
+
     private static final Locale[] ALL_LOCALES = {
         Locale.GERMAN,
         new Locale("es"),
@@ -555,4 +556,5 @@ public class AllChecksTest extends AbstractModuleTestSupport {
         }
         return result;
     }
+
 }
